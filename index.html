@@ -543,6 +543,23 @@ input:focus, textarea:focus, select:focus { background: #fff; border-color: var(
 .cal .day.out { background: #F6F5F1; }
 .cal .day.hol { background: var(--hl-soft); }
 
+/* slot grid: dates stay on top while scrolling down the designers (the grid scrolls inside its own box) */
+.slotscroll { max-height: min(78vh, 900px); overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.slotgrid thead th { position: sticky; top: 0; z-index: 2; background: #FAF9F5; box-shadow: 0 1px 0 var(--line); }
+.slotgrid thead th.today { background: #FDF0BE; }
+.slotgrid thead th.who { left: 0; z-index: 3; background: #FAF9F5; }
+.slotgrid tbody th.who { background: #fff; }
+@media (max-width: 640px) {
+  #wkThis { display: none; }
+  .slotscroll { max-height: calc(100vh - 150px); }
+  .slotgrid th.who { width: 128px; padding: 10px; }
+  .slotgrid th.who .avatar.sm { width: 28px; height: 28px; }
+  .slotgrid th.who span { font-size: 11px; }
+}
+/* outsource / leave forms: white fields so they stand out on the glass card */
+.group.plain input, .group.plain select, .group.plain textarea { background: #fff; border: 1px solid #E6E3DA; }
+.group.plain input:focus, .group.plain select:focus, .group.plain textarea:focus { border-color: var(--ink); }
+
 /* slot: legend left, week navigation right, right above the grid */
 .slotbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: -10px; }
 
@@ -789,7 +806,7 @@ input:focus, textarea:focus, select:focus { background: #fff; border-color: var(
         <button type="button" id="wkSync" hidden>从表格同步</button>
       </div>
     </div>
-    <div class="panel" style="padding:0;overflow:hidden"><div class="scroll"><table class="slotgrid" id="slotGrid"></table></div></div>
+    <div class="panel" style="padding:0;overflow:hidden"><div class="scroll slotscroll"><table class="slotgrid" id="slotGrid"></table></div></div>
     <div class="panel slot-edit" id="slotEdit" hidden></div>
   </section>
 
