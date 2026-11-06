@@ -568,6 +568,36 @@ html.ready .boot-load { display: none; }
 @keyframes bootspin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .boot-load .spin { animation: none; } }
 
+/* AI Video */
+.vd-stats { display: flex; flex-wrap: wrap; gap: 10px; }
+.vd-stat { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 110px; padding: 12px 16px; border-radius: 18px; border: 1px solid var(--edge); background: var(--card); box-shadow: var(--shadow); text-align: left; }
+.vd-stat b { font-size: 28px; font-weight: 300; line-height: 1; letter-spacing: -.02em; }
+.vd-stat span { font-size: 12.5px; color: var(--muted); }
+.vd-stat.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.vd-stat.on span { color: rgba(255, 255, 255, .7); }
+.vd-stat.late b { color: var(--bad); } .vd-stat.late.on b { color: #FF8A80; }
+.vpill { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.vpill.done { background: var(--ok-soft); color: var(--ok); }
+.vpill.progress { background: var(--hl-soft); color: #7A5A00; }
+.vpill.queue { background: var(--bad-soft); color: var(--bad); }
+.vpill.none { background: var(--bad); color: #fff; }
+.vd-who { display: flex; flex-direction: column; gap: 4px; }
+.vd-who .who-row { gap: 6px; white-space: nowrap; font-size: 13px; }
+.vdlist td.late { color: var(--bad); font-weight: 800; }
+.vdlist tr.mine td:first-child { box-shadow: inset 3px 0 0 var(--hl); }
+.vdlist td { vertical-align: middle; }
+.vd-form { background: #fff; border: 1px solid #E3E0D6; border-radius: 20px; padding: 20px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 14px; }
+.vd-form h3 { font-size: 17px; }
+.vd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 14px; }
+.vd-grid label, .vd-note { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.vd-form input, .vd-form select, .vd-form textarea { background: #F3F2EC; }
+.vd-des { display: flex; flex-direction: column; gap: 8px; }
+.vd-des .lbl2 { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.vd-des .chip { display: inline-flex; align-items: center; gap: 6px; }
+.vd-des .chip .avatar.xs { margin: 0; }
+.vd-new { padding: 9px 20px; font-size: 14px; }
+.vd-upd td { background: rgba(255, 255, 255, .6); }
+
 /* slot: legend left, week navigation right, right above the grid */
 .slotbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: -10px; }
 
@@ -608,6 +638,7 @@ html.ready .boot-load { display: none; }
     <button type="button" role="tab" id="vDaily" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg><span>每日登记</span></button>
     <button type="button" role="tab" id="vMine" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><span>我的Case总数</span></button>
     <button type="button" role="tab" id="vSlot" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 14h3M13 14h3M8 17h3"/></svg><span>Slot</span></button>
+    <button type="button" role="tab" id="vVideo" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg><span>AI Video</span></button>
     <button type="button" role="tab" id="vOut" aria-selected="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="M21 3l-7 7"/><path d="M11 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg><span>Outsource</span></button>
     <button type="button" role="tab" id="vCal" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg><span>请假 / 假期</span></button>
     <button type="button" role="tab" id="vStats" aria-selected="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>本月统计</span></button>
@@ -691,6 +722,10 @@ html.ready .boot-load { display: none; }
             <span class="help" id="revHint"></span>
             <button type="button" class="linkbtn" id="revManual" style="align-self:flex-start">找不到？手动填 Case Name</button>
           </div>
+        </div>
+        <div class="step" id="vidStep" hidden>
+          <label class="lbl" for="fVideo">AI Video 单<small>选了会自动带入 Case Name、Marketer、类型</small></label>
+          <div class="ctl"><select id="fVideo"></select></div>
         </div>
         <div class="step" id="caseStep">
           <label class="lbl" for="fCase">Case Name</label>
@@ -800,6 +835,27 @@ html.ready .boot-load { display: none; }
       <div class="scroll"><table class="list"><thead id="mHead"></thead><tbody id="mBody"></tbody></table></div>
       <p class="empty" id="mEmpty" hidden>这个月还没有登记。</p>
     </div>
+  </section>
+
+  <section id="viewVideo" class="view" hidden aria-label="AI Video">
+    <div class="sec-head" style="margin-bottom:0">
+      <h2>AI Video</h2>
+      <div class="monthnav"><button type="button" id="vdPrev" aria-label="上个月">‹</button><b id="vdMonth">—</b><button type="button" id="vdNext" aria-label="下个月">›</button></div>
+    </div>
+    <div class="vd-stats" id="vdStats"></div>
+    <div class="panel">
+      <div class="sec-head">
+        <div class="toolbar">
+          <input type="search" id="vdSearch" placeholder="搜 Client / Content / PIC" aria-label="搜索" style="width:220px;padding:7px 12px">
+          <select id="vdWho" aria-label="按设计师筛选"><option value="">全部设计师</option></select>
+        </div>
+        <div class="toolbar"><span class="help" id="vdLoad"></span><button type="button" class="submit vd-new" id="vdNew" hidden>+ 开新单</button></div>
+      </div>
+      <div class="vd-form" id="vdForm" hidden></div>
+      <div class="scroll"><table class="list vdlist"><thead><tr><th>Client / Project</th><th>Content</th><th>Video Type</th><th>Duration</th><th>PIC</th><th>Designer</th><th>Received</th><th>Due</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
+      <p class="empty" id="vdEmpty" hidden>这个月还没有 AI Video 单。</p>
+    </div>
+    <datalist id="vdTypeList"></datalist><datalist id="vdMkList"></datalist>
   </section>
 
   <section id="viewSlot" class="view" hidden aria-label="Slot">
@@ -1089,6 +1145,7 @@ html.ready .boot-load { display: none; }
 
   /* ---------- mode ---------- */
   function setMode(m) {
+    setTimeout(renderVidPick, 0);
     state.mode = m;
     $("modeNew").setAttribute("aria-pressed", String(m === "new"));
     $("modeRev").setAttribute("aria-pressed", String(m === "rev"));
@@ -1236,7 +1293,7 @@ html.ready .boot-load { display: none; }
       if (type === OTHER) { type = $("fTypeOther").value.trim().slice(0, 30) || OTHER; }
       const qty = clampQty($("fQty").value);
       col = "addCase";
-      doc = Object.assign(base, { type, qty, link: link.slice(0, 500), note: $("fNote").value.trim().slice(0, 120) });
+      doc = Object.assign(base, { type, qty, link: link.slice(0, 500), note: $("fNote").value.trim().slice(0, 120), videoId: $("fVideo").value || "" });
       ok = "已提交：" + doc.client + " · " + type + " × " + qty;
     } else if (state.mode === "prog") {
       const what = $("fWhat").value.trim();
@@ -1244,7 +1301,7 @@ html.ready .boot-load { display: none; }
       let type = state.type;
       if (type === OTHER) { type = $("fTypeOther").value.trim().slice(0, 30) || OTHER; }
       col = "startCase";
-      doc = Object.assign(base, { type, qty: /^ai ?video$/i.test(type) ? 3 : 1, what: what.slice(0, 300), link: link.slice(0, 500) });
+      doc = Object.assign(base, { type, qty: /^ai ?video$/i.test(type) ? 3 : 1, what: what.slice(0, 300), link: link.slice(0, 500), videoId: $("fVideo").value || "" });
       ok = "已开始记进度：" + doc.client + "。之后每天在上面「你进行中的 case」记进度，做完按「完成了」。";
     } else {
       const what = $("fWhat").value.trim();
@@ -1260,6 +1317,7 @@ html.ready .boot-load { display: none; }
     const form = { fCase: $("fCase").value, fMarketer: $("fMarketer").value, fLink: $("fLink").value, fNote: $("fNote").value, fWhat: $("fWhat").value, fQty: $("fQty").value, fTypeOther: $("fTypeOther").value, noLink: $("fNoLink").checked, revCase: state.revCase, mode: state.mode };
     const clearForm = () => {
       $("fCase").value = ""; $("fLink").value = ""; $("fNote").value = ""; $("fWhat").value = ""; $("fQty").value = 1; $("fTypeOther").value = ""; $("fNoLink").checked = false;
+      if (doc.videoId) { const v = (state.vd.open || []).find((x) => x.id === doc.videoId); if (v) { v.status = col === "addCase" ? "done" : "progress"; if (v.status === "done") state.vd.open = state.vd.open.filter((x) => x !== v); } $("fVideo").value = ""; renderVidPick(); state.vd.data = {}; }
       if (col === "addRev") { state.revCase = null; $("revSearch").value = ""; renderRevList(); }
       checkDup();
     };
@@ -1920,7 +1978,7 @@ html.ready .boot-load { display: none; }
   });
 
   /* ---------- views ---------- */
-  const VIEWS = { daily: ["vDaily", "每日登记"], mine: ["vMine", "我的Case总数"], profile: ["vProfile", "My Profile"], slot: ["vSlot", "Slot"], out: ["vOut", "Outsource"], calendar: ["vCal", "请假 / 假期"], stats: ["vStats", "本月统计"], list: ["vList", "本月明细"], team: ["vTeam", "成员"] };
+  const VIEWS = { daily: ["vDaily", "每日登记"], mine: ["vMine", "我的Case总数"], video: ["vVideo", "AI Video"], profile: ["vProfile", "My Profile"], slot: ["vSlot", "Slot"], out: ["vOut", "Outsource"], calendar: ["vCal", "请假 / 假期"], stats: ["vStats", "本月统计"], list: ["vList", "本月明细"], team: ["vTeam", "成员"] };
   function setView(v, fromHash) {
     if (state.viewer && v !== "out") v = "slot";
     if (v === "out" && !state.viewer && !canManage()) v = "daily";
@@ -1929,6 +1987,7 @@ html.ready .boot-load { display: none; }
     Object.keys(VIEWS).forEach((k) => $(VIEWS[k][0]).setAttribute("aria-selected", String(k === v)));
     $("viewDaily").hidden = v !== "daily";
     $("viewMine").hidden = v !== "mine";
+    $("viewVideo").hidden = v !== "video";
     $("viewProfile").hidden = v !== "profile";
     $("viewCal").hidden = v !== "calendar";
     $("viewTeam").hidden = v !== "team";
@@ -1937,8 +1996,9 @@ html.ready .boot-load { display: none; }
     $("viewStats").hidden = !(v === "stats" || v === "list");
     $("paneStats").hidden = v !== "stats";
     $("paneList").hidden = v !== "list";
-    $("monthBar").hidden = v === "daily" || v === "team" || v === "slot" || v === "out" || v === "profile";
+    $("monthBar").hidden = v === "daily" || v === "team" || v === "slot" || v === "out" || v === "profile" || v === "video";
     if (v === "out") loadOut();
+    if (v === "video") loadVideos();
     if (v === "slot") loadSlots();
     if (v === "team") loadTeam();
     $("viewTitle").textContent = VIEWS[v][1];
@@ -2202,6 +2262,221 @@ html.ready .boot-load { display: none; }
   let chartT = null;
   window.addEventListener("resize", () => { clearTimeout(chartT); chartT = setTimeout(() => { renderMine(); renderStatCharts(); }, 150); });
 
+  /* ---------- AI Video: Jie Yi logs and assigns; status follows 进行中 / 完成了 ---------- */
+  state.vd = { month: today().slice(0, 7), data: {}, open: [], filter: "", who: "", q: "", edit: "", upd: "" };
+  const VSTATUS = { queue: "Queue", progress: "In Progress", done: "Completed" };
+  const vdNames = (s) => String(s || "").split(/\s*(?:、|,|，|&|\/)\s*/).map((x) => x.trim()).filter(Boolean);
+  const isMineV = (v) => vdNames(v.designer).some((n) => norm(n) === norm(state.me));
+  const dmy = (d) => d ? d.slice(8, 10) + "/" + d.slice(5, 7) : "—";
+  function putVideos(res) {
+    if (res.month) state.vd.data[res.month] = res.rows || [];
+    state.vd.open = res.open || state.vd.open;
+    state.vd.months = res.months || state.vd.months;
+    cacheSet("v:" + (res.month || "open"), res);
+    renderVidPick();
+  }
+  async function loadVideos(quiet) {
+    if (!db || state.viewer) return;
+    const m = state.vd.month;
+    const saved = state.vd.data[m] ? null : cacheGet("v:" + m);
+    if (saved) putVideos(saved);
+    renderVideos();
+    if (!quiet && !state.vd.data[m]) $("vdLoad").textContent = "载入中…";
+    try { putVideos(await call("videos", { month: m })); $("vdLoad").textContent = ""; renderVideos(); }
+    catch (e) { $("vdLoad").textContent = errMsg(e); }
+  }
+  async function loadVideoOpen() {
+    const saved = cacheGet("v:open"); if (saved) putVideos(saved);
+    try { putVideos(await call("videos", { month: "" })); } catch (e) {}
+  }
+  function vdPill(st) { return el("span", { class: "vpill " + st }, VSTATUS[st] || st); }
+  function vdDesigners(v) {
+    const box = el("div", { class: "vd-who" });
+    const names = vdNames(v.designer);
+    if (!names.length) { box.appendChild(el("span", { class: "vpill none" }, "Not Yet Assign")); return box; }
+    names.forEach((n) => { const w = el("span", { class: "who-row" }); w.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n)); w.appendChild(el("span", null, n)); box.appendChild(w); });
+    return box;
+  }
+  function renderVideos() {
+    if ($("viewVideo").hidden) return;
+    const m = state.vd.month, rows = state.vd.data[m] || [], t = today();
+    $("vdMonth").textContent = monthLabel(m);
+    $("vdNew").hidden = !canManage();
+    const who = $("vdWho");
+    if (who.options.length !== state.designers.length + 1) { who.textContent = ""; who.appendChild(el("option", { value: "" }, "全部设计师")); state.designers.forEach((n) => who.appendChild(el("option", { value: n }, n))); who.value = state.vd.who; }
+    // stats = quick filters
+    const cnt = { all: rows.length, none: 0, queue: 0, progress: 0, done: 0, late: 0 };
+    rows.forEach((v) => { if (!vdNames(v.designer).length) cnt.none++; cnt[v.status]++; if (v.status !== "done" && v.due && v.due < t) cnt.late++; });
+    const st = $("vdStats"); st.textContent = "";
+    [["", "这个月", cnt.all], ["none", "Not Yet Assign", cnt.none], ["queue", "Queue", cnt.queue], ["progress", "In Progress", cnt.progress], ["done", "Completed", cnt.done], ["late", "过了 Due 还没完成", cnt.late]].forEach(([k, label, n]) => {
+      const b = el("button", { type: "button", class: "vd-stat " + (k || "all") + (state.vd.filter === k ? " on" : ""), "aria-pressed": String(state.vd.filter === k) });
+      b.appendChild(el("b", { class: "num" }, String(n))); b.appendChild(el("span", null, label));
+      b.addEventListener("click", () => { state.vd.filter = state.vd.filter === k ? "" : k; renderVideos(); });
+      st.appendChild(b);
+    });
+    // datalists
+    const types = [...new Set(Object.values(state.vd.data).flat().map((v) => v.videoType).filter(Boolean))].sort();
+    $("vdTypeList").textContent = ""; types.forEach((x) => $("vdTypeList").appendChild(el("option", { value: x })));
+    $("vdMkList").textContent = ""; (state.marketers || []).forEach((x) => $("vdMkList").appendChild(el("option", { value: x })));
+    const qn = norm(state.vd.q || "");
+    const list = rows.filter((v) => {
+      const f = state.vd.filter;
+      if (f === "none" && vdNames(v.designer).length) return false;
+      if (["queue", "progress", "done"].includes(f) && v.status !== f) return false;
+      if (f === "late" && !(v.status !== "done" && v.due && v.due < t)) return false;
+      if (state.vd.who && !vdNames(v.designer).some((n) => norm(n) === norm(state.vd.who))) return false;
+      if (qn && !norm([v.client, v.content, v.marketer, v.videoType].join(" ")).includes(qn)) return false;
+      return true;
+    }).sort((a, b) => (a.due || "9").localeCompare(b.due || "9") || (a.createdAt || "").localeCompare(b.createdAt || ""));
+    const body = $("vdBody"); body.textContent = "";
+    $("vdEmpty").hidden = list.length > 0;
+    $("vdEmpty").textContent = rows.length ? "没有符合的单。" : "这个月还没有 AI Video 单。";
+    list.forEach((v) => {
+      const tr = el("tr", { class: isMineV(v) ? "mine" : "" });
+      tr.appendChild(el("td", null)).appendChild(el("b", null, v.client));
+      const ct = el("td", { class: "note" });
+      const cu = safeUrl(v.contentUrl);
+      if (cu) ct.appendChild(el("a", { href: cu, target: "_blank", rel: "noopener" }, v.content || "打开 ↗")); else ct.textContent = v.content || "";
+      tr.appendChild(ct);
+      tr.appendChild(el("td", null, v.videoType || ""));
+      tr.appendChild(el("td", { class: "num" }, v.duration || ""));
+      tr.appendChild(el("td", null, v.marketer || ""));
+      tr.appendChild(el("td", null)).appendChild(vdDesigners(v));
+      tr.appendChild(el("td", { class: "d num" }, dmy(v.received)));
+      tr.appendChild(el("td", { class: "d num" + (v.status !== "done" && v.due && v.due < t ? " late" : "") }, dmy(v.due)));
+      tr.appendChild(el("td", null)).appendChild(vdPill(v.status));
+      const lt = el("td", { class: "note" }); const lu = safeUrl(v.link);
+      if (lu) lt.appendChild(el("a", { href: lu, target: "_blank", rel: "noopener", title: v.linkText || "" }, (v.linkText || "打开").slice(0, 28) + " ↗")); else lt.textContent = v.linkText || "";
+      tr.appendChild(lt);
+      const act = el("td");
+      if (canManage()) { const b = el("button", { type: "button", class: "undo" }, "修改"); b.addEventListener("click", () => openVdForm(v)); act.appendChild(b); }
+      else if (isMineV(v)) { const b = el("button", { type: "button", class: "undo" }, state.vd.upd === v.id ? "收起" : "更新"); b.addEventListener("click", () => { state.vd.upd = state.vd.upd === v.id ? "" : v.id; renderVideos(); }); act.appendChild(b); }
+      tr.appendChild(act);
+      body.appendChild(tr);
+      if (state.vd.upd === v.id && !canManage()) body.appendChild(vdUpdateRow(v));
+    });
+  }
+  // A designer updates their own job: status, duration, final link.
+  function vdUpdateRow(v) {
+    const tr = el("tr", { class: "vd-upd" }), td = el("td", { colspan: "11" }); tr.appendChild(td);
+    const f = el("div", { class: "edit-form" });
+    const two = el("div", { class: "two" });
+    const sl = el("label", null, "Status"), ss = el("select"); Object.keys(VSTATUS).forEach((k) => ss.appendChild(el("option", { value: k }, VSTATUS[k]))); ss.value = v.status; sl.appendChild(ss);
+    const dl = el("label", null, "Duration"), di = el("input", { type: "text", maxlength: "20", placeholder: "例如 1m05s" }); di.value = v.duration || ""; dl.appendChild(di);
+    two.appendChild(sl); two.appendChild(dl); f.appendChild(two);
+    const ll = el("label", null, "Final 链接"), li = el("input", { type: "url", placeholder: "贴上成片的 Drive link" }); li.value = v.link || ""; ll.appendChild(li); f.appendChild(ll);
+    const acts = el("div", { class: "acts" }), save = el("button", { type: "button", class: "save" }, "保存"), stt = el("span", { class: "status" });
+    save.addEventListener("click", async () => {
+      if (li.value.trim() && !safeUrl(li.value.trim())) { stt.textContent = "链接要用 https:// 开头。"; stt.className = "status bad"; return; }
+      save.disabled = true; stt.textContent = "保存中…"; stt.className = "status";
+      try { putVideos(await call("videoSave", { id: v.id, month: state.vd.month, fields: { status: ss.value, duration: di.value.trim(), link: li.value.trim() } })); state.vd.upd = ""; renderVideos(); }
+      catch (e) { stt.textContent = errMsg(e); stt.className = "status bad"; save.disabled = false; }
+    });
+    acts.appendChild(save); acts.appendChild(stt); f.appendChild(acts); td.appendChild(f);
+    return tr;
+  }
+  // Admin: new job / change anything / delete. Choosing designers emails them.
+  function openVdForm(v) {
+    const box = $("vdForm"); box.textContent = ""; box.hidden = false;
+    const isNew = !v; v = v || { client: "", content: "", contentUrl: "", videoType: "", duration: "", marketer: "", designer: "", received: today(), due: "", status: "queue", link: "", note: "" };
+    box.appendChild(el("h3", null, isNew ? "开新单" : "修改：" + v.client));
+    const g = el("div", { class: "vd-grid" }), inputs = {};
+    const field = (k, label, type, attrs) => {
+      const l = el("label", null, label); let i;
+      if (type === "select") { i = el("select"); Object.keys(VSTATUS).forEach((s2) => i.appendChild(el("option", { value: s2 }, VSTATUS[s2]))); }
+      else if (type === "textarea") i = el("textarea", { maxlength: "200" });
+      else i = el("input", Object.assign({ type }, attrs || {}));
+      i.value = v[k] == null ? "" : v[k]; l.appendChild(i); inputs[k] = i; g.appendChild(l); return i;
+    };
+    field("client", "Client / Project *", "text", { maxlength: "80" });
+    field("marketer", "PIC（Marketer）", "text", { maxlength: "40", list: "vdMkList" });
+    field("content", "Content", "text", { maxlength: "200", placeholder: "例如：ASPEN VERSA VIDEO IDEA 1" });
+    field("contentUrl", "Content 链接（Script / Doc）", "url", { placeholder: "https://docs.google.com/…" });
+    field("videoType", "Video Type", "text", { maxlength: "40", list: "vdTypeList", placeholder: "例如：剧情+Sale" });
+    field("duration", "Duration", "text", { maxlength: "20", placeholder: "例如 1m05s" });
+    field("received", "Received Date", "date");
+    field("due", "Due Date", "date");
+    field("status", "Status", "select");
+    field("link", "Final 链接", "url", { placeholder: "成片的 Drive link" });
+    box.appendChild(g);
+    // designers: chips, several allowed; none = Not Yet Assign
+    let picked = vdNames(v.designer).map((n) => state.designers.find((d) => norm(d) === norm(n)) || n);
+    const dl = el("div", { class: "vd-des" }); dl.appendChild(el("span", { class: "lbl2" }, "Designer（选了就会 email 通知他）"));
+    const chips = el("div", { class: "chips" }); dl.appendChild(chips);
+    const drawChips = () => {
+      chips.textContent = "";
+      state.designers.forEach((n) => {
+        const b = el("button", { type: "button", class: "chip small", "aria-pressed": String(picked.includes(n)) });
+        b.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n)); b.appendChild(document.createTextNode(n));
+        b.addEventListener("click", () => { picked = picked.includes(n) ? picked.filter((x) => x !== n) : picked.concat(n); drawChips(); });
+        chips.appendChild(b);
+      });
+    };
+    drawChips(); box.appendChild(dl);
+    const nl = el("label", { class: "vd-note" }, "备注"); const nt = el("textarea", { maxlength: "200" }); nt.value = v.note || ""; nl.appendChild(nt); inputs.note = nt; box.appendChild(nl);
+    const acts = el("div", { class: "submit-row" });
+    const save = el("button", { type: "button", class: "submit" }, isNew ? "开单" : "保存");
+    const cancel = el("button", { type: "button", class: "plainbtn" }, "取消");
+    const st = el("span", { class: "status" });
+    acts.appendChild(save); acts.appendChild(cancel);
+    let del = null;
+    if (!isNew) { del = el("button", { type: "button", class: "plainbtn danger" }, "删除这张单"); acts.appendChild(del); }
+    acts.appendChild(st); box.appendChild(acts);
+    cancel.addEventListener("click", () => { box.hidden = true; box.textContent = ""; });
+    save.addEventListener("click", async () => {
+      const fields = {}; Object.keys(inputs).forEach((k) => { fields[k] = inputs[k].value.trim(); });
+      if (!fields.client) { st.textContent = "请填 Client / Project。"; st.className = "status bad"; inputs.client.focus(); return; }
+      for (const k of ["contentUrl", "link"]) if (fields[k] && !safeUrl(fields[k])) { st.textContent = "链接要用 https:// 开头。"; st.className = "status bad"; inputs[k].focus(); return; }
+      fields.marketer = canon(fields.marketer, state.marketers || [], state.aliases || {});
+      fields.designer = picked;
+      save.disabled = true; st.textContent = "保存中…"; st.className = "status";
+      try {
+        const res = await call("videoSave", { id: isNew ? "" : v.id, month: state.vd.month, fields });
+        putVideos(res);
+        const mm = res.saved && res.saved.month;
+        if (mm && mm !== state.vd.month) { state.vd.month = mm; await loadVideos(true); }
+        box.hidden = true; box.textContent = "";
+        $("vdLoad").textContent = (isNew ? "已开单：" : "已保存：") + fields.client + (res.sentTo && res.sentTo.length ? " · 已 email 通知 " + res.sentTo.join("、") : "");
+        renderVideos();
+      } catch (e) { st.textContent = errMsg(e); st.className = "status bad"; save.disabled = false; }
+    });
+    if (del) {
+      let t = null;
+      del.addEventListener("click", async () => {
+        if (!del.classList.contains("arm")) { del.classList.add("arm"); del.textContent = "确定删除？"; t = setTimeout(() => { del.classList.remove("arm"); del.textContent = "删除这张单"; }, 5000); return; }
+        clearTimeout(t); del.disabled = true;
+        try { putVideos(await call("videoDel", { id: v.id, month: state.vd.month })); box.hidden = true; box.textContent = ""; renderVideos(); }
+        catch (e) { st.textContent = errMsg(e); st.className = "status bad"; del.disabled = false; }
+      });
+    }
+    try { box.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {}
+    setTimeout(() => inputs.client.focus(), 50);
+  }
+  $("vdNew").addEventListener("click", () => openVdForm(null));
+  $("vdPrev").addEventListener("click", () => { state.vd.month = shiftMonth(state.vd.month, -1); loadVideos(); });
+  $("vdNext").addEventListener("click", () => { state.vd.month = shiftMonth(state.vd.month, 1); loadVideos(); });
+  $("vdSearch").addEventListener("input", () => { state.vd.q = $("vdSearch").value; renderVideos(); });
+  $("vdWho").addEventListener("change", () => { state.vd.who = $("vdWho").value; renderVideos(); });
+  // 每日登记: pick which of my open AI Video jobs this is.
+  function renderVidPick() {
+    const sel = $("fVideo"); if (!sel) return;
+    const mine = (state.vd.open || []).filter(isMineV).sort((a, b) => (a.due || "9").localeCompare(b.due || "9"));
+    const cur = sel.value;
+    sel.textContent = "";
+    sel.appendChild(el("option", { value: "" }, "不是 AI Video 单 / 不在清单里"));
+    mine.forEach((v) => sel.appendChild(el("option", { value: v.id }, (v.due ? dmy(v.due) + " 交 · " : "") + v.client + (v.content ? " · " + v.content.slice(0, 30) : "") + (v.status === "progress" ? "（进行中）" : ""))));
+    sel.value = mine.some((v) => v.id === cur) ? cur : "";
+    $("vidStep").hidden = !mine.length || state.mode === "rev";
+  }
+  $("fVideo").addEventListener("change", () => {
+    const v = (state.vd.open || []).find((x) => x.id === $("fVideo").value);
+    if (!v) return;
+    $("fCase").value = v.client; $("fMarketer").value = v.marketer || "";
+    const t = (state.types || []).find((x) => /^ai ?video$/i.test(x)) || "AI Video";
+    state.type = t; renderTypes(); if (state.mode === "new") $("fQty").value = 3;
+    checkDup();
+  });
+
   /* ---------- 我的本月: one person's month (admin can pick anyone) ---------- */
   state.mtab = "cases"; state.mq = ""; state.mineWho = "";
   function renderMine() {
@@ -2416,7 +2691,7 @@ html.ready .boot-load { display: none; }
       $("brandLabel").textContent = "Creative Team Slot List";
       $("vOut").hidden = false;
       state.marketers = d.marketers || []; state.aliases = d.aliases || {};
-      ["vDaily", "vMine", "vProfile", "vCal", "vStats", "vList", "vTeam", "teamBtn", "driveRootBtn"].forEach((id) => { const x = $(id); if (x) x.hidden = true; });
+      ["vDaily", "vMine", "vVideo", "vProfile", "vCal", "vStats", "vList", "vTeam", "teamBtn", "driveRootBtn"].forEach((id) => { const x = $(id); if (x) x.hidden = true; });
       document.querySelector("header.band").hidden = true;
       state.designers = d.designers || [];
       return;
@@ -2441,6 +2716,7 @@ html.ready .boot-load { display: none; }
     setView(location.hash.slice(1), true);   // re-apply now that admin status is known
     ready();
     startTimers();
+    loadVideoOpen();
   }
   (async () => {
     if (!TOKEN) { ready(); showNotice("这个链接不完整。请用 Jie Yi 发给你的专属链接打开。"); return; }
