@@ -657,7 +657,12 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   html.side-mini .side-brand > span, html.side-mini .side-nav button > span:not(.avatar), html.side-mini .side-team > span, html.side-mini .side-link > span {
     max-width: 0; opacity: 0; transition: max-width .45s var(--side-ease), opacity .15s ease; }
   html.side-mini .side-nav button, html.side-mini .side-link, html.side-mini .side-team { gap: 0; }
-  html.side-mini .side-team { padding-left: 13px; padding-right: 13px; }
+  html.side-mini .side { scrollbar-width: none; padding-left: 14px; padding-right: 14px; }
+  html.side-mini .side::-webkit-scrollbar { width: 0; }
+  html.side-mini .side-nav button, html.side-mini .side-link, html.side-mini .side-team { justify-content: center; width: 60px; margin-left: auto; margin-right: auto; padding-left: 0; padding-right: 0; box-sizing: border-box; }
+  html.side-mini .side-nav button > span:not(.avatar), html.side-mini .side-team > span, html.side-mini .side-link > span { position: absolute; pointer-events: none; }
+  html.side-mini .side-brand { padding-left: 0; padding-right: 0; }
+  html.side-mini .side-brand .logo-mini { left: 50%; margin-left: -18px; }
   .side-toggle { position: fixed; z-index: 60; top: 40px; left: calc(var(--side-w) - 15px); width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--edge); background: #fff; box-shadow: 0 6px 16px rgba(0, 0, 0, .12); display: grid; place-items: center; padding: 0; transition: left .45s var(--side-ease), box-shadow .2s, transform .2s; }
   .side-toggle:hover { box-shadow: 0 8px 20px rgba(0, 0, 0, .18); transform: scale(1.06); }
   .side-toggle svg { width: 16px; height: 16px; fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .45s var(--side-ease); }
