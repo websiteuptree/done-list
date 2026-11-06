@@ -1014,6 +1014,11 @@ html.ready .boot-load { display: none; }
   // Inside Apps Script the token is filled in by the template; on the hosted page (GitHub Pages) it comes from ?k=.
   const TOKEN = ((document.getElementById("tok") || {}).dataset || {}).k || (new URLSearchParams(location.search).get("k") || "").slice(0, 64);
   const API_URL = window.DONE_LIST_API || "";
+  // Last answers kept in this browser (per link), so the page appears at once and refreshes quietly.
+  const LS = "dl1:" + TOKEN.slice(-8) + ":";
+  function cacheGet(k) { try { const v = localStorage.getItem(LS + k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+  function cacheSet(k, v) { try { localStorage.setItem(LS + k, JSON.stringify(v)); } catch (e) {} }
+  function cacheClear() { try { Object.keys(localStorage).filter((k) => k.indexOf(LS) === 0).forEach((k) => localStorage.removeItem(k)); } catch (e) {} }
   let db = false, userId = null;   // db = true once the first load from the Google Sheet succeeds
   // Calls the Apps Script backend: api(token, action, payload) → {ok, data | error}
   function call(action, payload) {
@@ -1052,10 +1057,16 @@ html.ready .boot-load { display: none; }
     box.cases = d.cases || []; box.revs = d.revs || []; box.cal = d.cal || []; box.progress = d.progress || []; box.loaded = true; box.at = Date.now();
     (state.pending || []).filter((p) => p.month === d.month).forEach((p) => { box[p.kind] = box[p.kind].concat(p.row); });
     if (d.ongoing) state.ongoing = d.ongoing;
+    if (d.month) cacheSet("m:" + d.month, d);
   }
   function watchMonth(m, force) {
     if (!db) return;
-    const box = state.months[m];
+    let box = state.months[m];
+    if (!box || (!box.loaded && !box.pending)) {
+      const c = cacheGet("m:" + m);
+      if (c && c.month === m) { putMonth(c); box = state.months[m]; force = true; }   // show the saved copy, then refresh
+    }
+    if (box && box.pending) return;
     if (!force && box && (box.loaded || box.pending)) return;
     state.months[m] = Object.assign(box || { cases: [], revs: [], cal: [], loaded: false }, { pending: true });
     call("month", { month: m }).then((d) => { putMonth(d); state.months[m].pending = false; renderAll(); })
@@ -1641,7 +1652,7 @@ html.ready .boot-load { display: none; }
   function weekDays() { return [0, 1, 2, 3, 4].map((i) => addDays(state.week, i)); }
   // Weeks are cached in the browser: one call loads 4 weeks (last, this, next two), so 上一周 / 下一周 are instant
   // and the shown week refreshes quietly in the background.
-  state.slotCache = {};
+  state.slotCache = (() => { const c = cacheGet("slots") || {}; Object.keys(c).forEach((w) => { c[w].at = 0; }); return c; })();   // saved weeks: shown at once, then refreshed
   function cacheWeeks(d) {
     for (let w = mondayOf(d.from); w <= d.to; w = addDays(w, 7)) {
       const end = addDays(w, 6);
@@ -1649,6 +1660,9 @@ html.ready .boot-load { display: none; }
       state.slotCache[w] = { from: w, to: end, slots: d.slots.filter(inW), cal: d.cal.filter(inW), sheetDates: (d.sheetDates || []).filter((x) => x >= w && x <= end), sheetUrl: d.sheetUrl || state.slotSheetUrl || "", at: Date.now() };
       if (d.sheetUrl) state.slotSheetUrl = d.sheetUrl;
     }
+    const keep = {}, lo = addDays(mondayOf(today()), -21), hi = addDays(mondayOf(today()), 42);
+    Object.keys(state.slotCache).filter((w) => w >= lo && w <= hi).forEach((w) => { keep[w] = state.slotCache[w]; });
+    cacheSet("slots", keep);
   }
   let slotFetch = null;
   async function loadSlots(quiet) {
@@ -2414,23 +2428,38 @@ html.ready .boot-load { display: none; }
     const root = safeUrl(state.driveRoot); $("driveRootBtn").hidden = !root; if (root) $("driveRootBtn").href = root;
   }
   const ready = () => document.documentElement.classList.add("ready");
-  (async () => {
-    if (!TOKEN) { ready(); showNotice("这个链接不完整。请用 Jie Yi 发给你的专属链接打开。"); return; }
-    try { applyBoot(await call("boot")); }
-    catch (e) { ready(); showNotice(e && e.message === "bad_link" ? "这个链接不对或已经失效，请找 Jie Yi 要你的专属链接。" : "连不上资料表，请重新整理页面。"); return; }
+  let started = false;
+  function start(d) {
+    applyBoot(d);
     db = true;
+    if (started) { if (state.viewer) setView(state.view, true); else { renderAll(); setView(state.view, true); } return; }   // fresh boot after the saved one
+    started = true;
     if (state.viewer) { setView(location.hash.slice(1) === "out" ? "out" : "slot", true); ready(); setInterval(() => { if (!document.hidden) loadSlots(true); }, 60000); return; }
     ensureMonths();
     renderAll();
     setView(location.hash.slice(1), true);   // re-apply now that admin status is known
     ready();
+    startTimers();
+  }
+  (async () => {
+    if (!TOKEN) { ready(); showNotice("这个链接不完整。请用 Jie Yi 发给你的专属链接打开。"); return; }
+    const saved = cacheGet("boot");
+    if (saved && saved.me) { try { start(saved); } catch (e) { started = false; } }
+    try { const fresh = await call("boot"); cacheSet("boot", fresh); start(fresh); }
+    catch (e) {
+      if (e && e.message === "bad_link") { cacheClear(); if (started) { location.reload(); return; } ready(); showNotice("这个链接不对或已经失效，请找 Jie Yi 要你的专属链接。"); return; }
+      if (!started) { ready(); showNotice("连不上资料表，请重新整理页面。"); }
+      return;
+    }
+  })();
+  function startTimers() {
     // No live updates in Apps Script: refresh the months on screen every minute while the tab is visible.
     setInterval(() => {
       if (document.hidden || state.editing || state.ogOpen || (state.pending && state.pending.length)) return;
       [...new Set([today().slice(0, 7), state.month, state.day.slice(0, 7)])].forEach((m) => watchMonth(m, true));
       if (state.view === "slot" && !state.slotSel) loadSlots(true);
     }, 60000);
-  })();
+  }
 })();
 </script>
 
