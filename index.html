@@ -585,7 +585,39 @@ html.ready .boot-load { display: none; }
 .vd-who .who-row { gap: 6px; white-space: nowrap; font-size: 13px; }
 .vdlist td.late { color: var(--bad); font-weight: 800; }
 .vdlist tr.mine td:first-child { box-shadow: inset 3px 0 0 var(--hl); }
-.vdlist td { vertical-align: middle; }
+.vdlist td { vertical-align: middle; position: relative; padding-top: 6px; padding-bottom: 6px; }
+.vdlist input.cell, .vdlist select.cell { font: inherit; font-size: 13.5px; color: var(--fg); background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 6px 8px; margin: 0 -8px; width: calc(100% + 16px); min-width: 64px; box-shadow: none; }
+.vdlist input.cell:hover, .vdlist select.cell:hover { border-color: #E3E0D6; background: rgba(255, 255, 255, .7); }
+.vdlist input.cell:focus, .vdlist select.cell:focus { border-color: var(--ink); background: #fff; outline: none; }
+.vdlist input.cell::placeholder { color: #B5B2A8; }
+.vdlist .vd-client input.cell { font-weight: 700; min-width: 110px; }
+.vdlist .vd-dur input.cell { min-width: 58px; }
+.vdlist td:nth-child(3) input.cell { min-width: 108px; }
+.vdlist td:nth-child(5) input.cell { min-width: 96px; }
+.vdlist { min-width: 1080px; }
+.vdlist input[type="date"].cell { min-width: 128px; color: var(--muted); }
+.vdlist .vd-due.late input.cell { color: var(--bad); font-weight: 800; }
+.vdlist select.cell.vstat { -webkit-appearance: none; appearance: none; width: auto; margin: 0; padding: 4px 26px 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: right 12px center, right 8px center; background-size: 4px 4px; background-repeat: no-repeat; }
+.vdlist select.cell.vstat.done { background-color: var(--ok-soft); color: var(--ok); }
+.vdlist select.cell.vstat.progress { background-color: var(--hl-soft); color: #7A5A00; }
+.vdlist select.cell.vstat.queue { background-color: var(--bad-soft); color: var(--bad); }
+.vdlist td.saving { opacity: .55; }
+.vdlist td.saved { animation: vdsaved .9s ease; }
+@keyframes vdsaved { 0% { background: rgba(30, 138, 76, .16); } 100% { background: transparent; } }
+.vdlist td.err { background: var(--bad-soft); }
+.vd-linkcell { white-space: nowrap; }
+.vd-ed { border: none; background: none; color: #B5B2A8; font-size: 14px; padding: 2px 4px; margin-left: 2px; border-radius: 6px; vertical-align: middle; opacity: 0; transition: opacity .15s; }
+.vdlist tr:hover .vd-ed, .vd-ed:focus { opacity: 1; }
+.vd-ed:hover { color: var(--ink); background: rgba(0, 0, 0, .05); }
+@media (hover: none) { .vd-ed { opacity: 1; } }
+.vd-desbtn { border: 1px solid transparent; background: none; border-radius: 8px; padding: 4px 6px; margin: 0 -6px; text-align: left; cursor: pointer; }
+.vd-desbtn:hover { border-color: #E3E0D6; background: rgba(255, 255, 255, .7); }
+.vd-pop { position: absolute; z-index: 20; top: calc(100% - 4px); left: 0; min-width: 260px; max-width: 360px; background: #fff; border: 1px solid #E3E0D6; border-radius: 14px; box-shadow: 0 14px 34px rgba(0, 0, 0, .14); padding: 12px; display: flex; flex-direction: column; gap: 8px; white-space: normal; }
+.vd-pop input { background: #F3F2EC; padding: 8px 10px; font-size: 13.5px; }
+.vd-pop .save { align-self: flex-start; background: var(--ink); color: #fff; border: none; border-radius: 999px; padding: 7px 18px; font-weight: 700; }
+.vd-pop .chip { display: inline-flex; align-items: center; gap: 6px; }
+.vd-pop .chip .avatar.xs { margin: 0; }
 .vdlist td:last-child { white-space: nowrap; }
 .vchip { display: inline-flex; align-items: center; gap: 6px; max-width: 190px; padding: 4px 10px 4px 6px; border-radius: 999px; background: #F1F3F4; border: 1px solid #E3E3E3; color: #1F1F1F; text-decoration: none; font-size: 13px; font-weight: 500; line-height: 1.3; }
 a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
@@ -888,7 +920,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         <div class="toolbar"><span class="help" id="vdLoad"></span><button type="button" class="submit vd-new" id="vdNew" hidden>+ 开新单</button></div>
       </div>
       <div class="vd-form" id="vdForm" hidden></div>
-      <div class="scroll"><table class="list vdlist"><thead><tr><th>Client / Project</th><th>Content</th><th>Video Type</th><th>Duration</th><th>PIC</th><th>Designer</th><th>Received</th><th>Due</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
+      <div class="scroll"><table class="list vdlist"><thead><tr><th>Client / Project</th><th>Content</th><th>Video Type</th><th>Duration</th><th>PIC</th><th>Designer</th><th>Due</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
       <p class="empty" id="vdEmpty" hidden>这个月还没有 AI Video 单。</p>
     </div>
     <datalist id="vdTypeList"></datalist><datalist id="vdMkList"></datalist>
@@ -2018,6 +2050,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   function setView(v, fromHash) {
     if (state.viewer && v !== "out") v = "slot";
     if (v === "out" && !state.viewer && !canManage()) v = "daily";
+    if (v === "video" && !state.videoTeam) v = "daily";
     if (!VIEWS[v] || ((v === "team" || v === "stats") && !canManage())) v = v === "stats" ? "list" : "daily";
     state.view = v;
     Object.keys(VIEWS).forEach((k) => $(VIEWS[k][0]).setAttribute("aria-selected", String(k === v)));
@@ -2304,15 +2337,20 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   const vdNames = (s) => String(s || "").split(/\s*(?:、|,|，|&|\/)\s*/).map((x) => x.trim()).filter(Boolean);
   const isMineV = (v) => vdNames(v.designer).some((n) => norm(n) === norm(state.me));
   const dmy = (d) => d ? d.slice(8, 10) + "/" + d.slice(5, 7) : "—";
-  function putVideos(res) {
-    if (res.month) state.vd.data[res.month] = res.rows || [];
+  function putVideos(res, keep) {
+    if (res.month) {
+      if (keep && state.vd.data[res.month]) {
+        const cur = state.vd.data[res.month], byId = new Map(cur.map((x) => [x.id, x]));
+        state.vd.data[res.month] = (res.rows || []).map((r) => byId.has(r.id) ? Object.assign(byId.get(r.id), r) : r);
+      } else state.vd.data[res.month] = res.rows || [];
+    }
     state.vd.open = res.open || state.vd.open;
     state.vd.months = res.months || state.vd.months;
     cacheSet("v:" + (res.month || "open"), res);
     renderVidPick();
   }
   async function loadVideos(quiet) {
-    if (!db || state.viewer) return;
+    if (!db || state.viewer || !state.videoTeam) return;
     const m = state.vd.month;
     const saved = state.vd.data[m] ? null : cacheGet("v:" + m);
     if (saved) putVideos(saved);
@@ -2362,7 +2400,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     if ($("viewVideo").hidden) return;
     const m = state.vd.month, rows = state.vd.data[m] || [], t = today();
     $("vdMonth").textContent = monthLabel(m);
-    $("vdNew").hidden = !canManage();
+    $("vdNew").hidden = !state.videoTeam;
     const who = $("vdWho");
     if (who.options.length !== state.designers.length + 1) { who.textContent = ""; who.appendChild(el("option", { value: "" }, "全部设计师")); state.designers.forEach((n) => who.appendChild(el("option", { value: n }, n))); who.value = state.vd.who; }
     // stats = quick filters
@@ -2392,26 +2430,118 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const body = $("vdBody"); body.textContent = "";
     $("vdEmpty").hidden = list.length > 0;
     $("vdEmpty").textContent = rows.length ? "没有符合的单。" : "这个月还没有 AI Video 单。";
-    list.forEach((v) => {
-      const tr = el("tr", { class: isMineV(v) ? "mine" : "" });
-      tr.appendChild(el("td", null)).appendChild(el("b", null, v.client));
-      tr.appendChild(el("td", null)).appendChild(vdChip(v.contentUrl, v.content, "Script"));
-      tr.appendChild(el("td", null, v.videoType || ""));
-      tr.appendChild(el("td", { class: "num" }, v.duration || ""));
-      tr.appendChild(el("td", null, v.marketer || ""));
-      tr.appendChild(el("td", null)).appendChild(vdDesigners(v));
-      tr.appendChild(el("td", { class: "d num" }, dmy(v.received)));
-      tr.appendChild(el("td", { class: "d num" + (v.status !== "done" && v.due && v.due < t ? " late" : "") }, dmy(v.due)));
-      tr.appendChild(el("td", null)).appendChild(vdPill(v.status));
-      tr.appendChild(el("td", null)).appendChild(vdChip(v.link, v.linkText, "成片"));
-      const act = el("td");
-      if (canManage()) { const b = el("button", { type: "button", class: "undo" }, "修改"); b.addEventListener("click", () => openVdForm(v)); act.appendChild(b); }
-      else if (isMineV(v)) { const b = el("button", { type: "button", class: "undo" }, state.vd.upd === v.id ? "收起" : "更新"); b.addEventListener("click", () => { state.vd.upd = state.vd.upd === v.id ? "" : v.id; renderVideos(); }); act.appendChild(b); }
-      tr.appendChild(act);
-      body.appendChild(tr);
-      if (state.vd.upd === v.id && !canManage()) body.appendChild(vdUpdateRow(v));
-    });
+    list.forEach((v) => body.appendChild(vdRow(v, t)));
   }
+  // Save one or more fields of a row right away; the table stays as it is (so you can keep typing in the next cell).
+  async function vdSave(v, fields, td) {
+    const before = {}; Object.keys(fields).forEach((k) => { before[k] = v[k]; });
+    Object.assign(v, fields);
+    if (td) { td.classList.remove("saved", "err"); td.classList.add("saving"); }
+    try {
+      const res = await call("videoSave", { id: v.id, month: state.vd.month, fields });
+      putVideos(res, true);
+      if (td) { td.classList.remove("saving"); td.classList.add("saved"); setTimeout(() => td.classList.remove("saved"), 900); }
+      if (res.sentTo && res.sentTo.length) $("vdLoad").textContent = "已 email 通知 " + res.sentTo.join("、");
+      if (res.saved && res.saved.month !== state.vd.month) { $("vdLoad").textContent = v.client + " 的 Due 换到 " + monthLabel(res.saved.month) + "，已经搬过去。"; renderVideos(); }
+      else if ("status" in fields || "due" in fields || "designer" in fields) renderVideos();
+    } catch (e) {
+      Object.assign(v, before);
+      if (td) { td.classList.remove("saving"); td.classList.add("err"); }
+      $("vdLoad").textContent = "没存到：" + errMsg(e);
+      setTimeout(renderVideos, 1200);
+    }
+  }
+  function vdCellInput(v, k, attrs, td) {
+    const i = el("input", Object.assign({ class: "cell", type: "text" }, attrs || {}));
+    i.value = v[k] || "";
+    i.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); i.blur(); } if (e.key === "Escape") { i.value = v[k] || ""; i.blur(); } });
+    i.addEventListener("change", () => {
+      let val = i.value.trim();
+      if (k === "client" && !val) { i.value = v[k]; return; }
+      if (k === "marketer") { val = canon(val, state.marketers || [], state.aliases || {}); i.value = val; }
+      if (val !== (v[k] || "")) vdSave(v, { [k]: val }, td);
+    });
+    return i;
+  }
+  // Small pop-up next to a cell (designers, or a chip's name + link).
+  let vdPopOpen = null;
+  function vdClosePop() { if (vdPopOpen) { const f = vdPopOpen; vdPopOpen = null; f(); } }
+  document.addEventListener("mousedown", (e) => { if (vdPopOpen && !e.target.closest(".vd-pop")) vdClosePop(); });
+  function vdPop(td, build, onClose) {
+    vdClosePop();
+    const pop = el("div", { class: "vd-pop" }); build(pop); td.appendChild(pop);
+    vdPopOpen = () => { pop.remove(); if (onClose) onClose(); };
+    return pop;
+  }
+  function vdLinkCell(v, urlKey, textKey, fallback) {
+    const td = el("td", { class: "vd-linkcell" });
+    td.appendChild(vdChip(v[urlKey], v[textKey], fallback));
+    const ed = el("button", { type: "button", class: "vd-ed", title: "改" + (fallback === "Script" ? " Content" : "链接"), "aria-label": "编辑" }, "✎");
+    ed.addEventListener("click", (e) => {
+      e.stopPropagation();
+      vdPop(td, (pop) => {
+        const n = el("input", { type: "text", maxlength: "200", placeholder: fallback === "Script" ? "Content（例如 ASPEN VERSA VIDEO IDEA 1）" : "名字（例如 1. 071126 - 成片）" }); n.value = v[textKey] || "";
+        const u = el("input", { type: "url", placeholder: "https:// 链接" }); u.value = v[urlKey] || "";
+        const st = el("span", { class: "status" });
+        const ok = el("button", { type: "button", class: "save" }, "保存");
+        ok.addEventListener("click", () => {
+          if (u.value.trim() && !safeUrl(u.value.trim())) { st.textContent = "链接要用 https:// 开头。"; st.className = "status bad"; return; }
+          const f = { [textKey]: n.value.trim(), [urlKey]: u.value.trim() };
+          vdPopOpen = null; td.querySelector(".vd-pop").remove();
+          td.replaceChild(vdChip(f[urlKey], f[textKey], fallback), td.firstChild);
+          vdSave(v, f, td);
+        });
+        pop.appendChild(n); pop.appendChild(u);
+        const row = el("div", { class: "row2" }); row.appendChild(ok); row.appendChild(st); pop.appendChild(row);
+        setTimeout(() => n.focus(), 0);
+      });
+    });
+    td.appendChild(ed);
+    return td;
+  }
+  function vdRow(v, t) {
+    const tr = el("tr", { class: isMineV(v) ? "mine" : "" });
+    const c1 = el("td", { class: "vd-client" }); c1.appendChild(vdCellInput(v, "client", { maxlength: "80" }, c1)); tr.appendChild(c1);
+    tr.appendChild(vdLinkCell(v, "contentUrl", "content", "Script"));
+    const c3 = el("td"); c3.appendChild(vdCellInput(v, "videoType", { maxlength: "40", list: "vdTypeList", placeholder: "—" }, c3)); tr.appendChild(c3);
+    const c4 = el("td", { class: "vd-dur" }); c4.appendChild(vdCellInput(v, "duration", { maxlength: "20", placeholder: "—" }, c4)); tr.appendChild(c4);
+    const c5 = el("td"); c5.appendChild(vdCellInput(v, "marketer", { maxlength: "40", list: "vdMkList", placeholder: "—" }, c5)); tr.appendChild(c5);
+    // designers: click to pick (several allowed); newly picked people get an email
+    const c6 = el("td", { class: "vd-descell" });
+    const db6 = el("button", { type: "button", class: "vd-desbtn", title: "选设计师" }); db6.appendChild(vdDesigners(v)); c6.appendChild(db6);
+    db6.addEventListener("click", (e) => {
+      e.stopPropagation();
+      let picked = vdNames(v.designer).map((n) => state.designers.find((d) => norm(d) === norm(n)) || n);
+      const start = picked.join("、");
+      vdPop(c6, (pop) => {
+        pop.appendChild(el("div", { class: "help" }, "选谁做（新选的人会收到 email）"));
+        const chips = el("div", { class: "chips" }); pop.appendChild(chips);
+        const draw = () => { chips.textContent = ""; state.designers.forEach((n) => {
+          const b = el("button", { type: "button", class: "chip small", "aria-pressed": String(picked.includes(n)) });
+          b.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n)); b.appendChild(document.createTextNode(n));
+          b.addEventListener("click", () => { picked = picked.includes(n) ? picked.filter((x) => x !== n) : picked.concat(n); draw(); });
+          chips.appendChild(b); }); };
+        draw();
+        const done = el("button", { type: "button", class: "save" }, "好"); done.addEventListener("click", vdClosePop); pop.appendChild(done);
+      }, () => { if (picked.join("、") !== start) vdSave(v, { designer: picked }, c6); });
+    });
+    tr.appendChild(c6);
+    const late = v.status !== "done" && v.due && v.due < t;
+    const c7 = el("td", { class: "vd-due" + (late ? " late" : "") });
+    const di = el("input", { class: "cell", type: "date" }); di.value = v.due || "";
+    di.addEventListener("change", () => { if (di.value !== (v.due || "")) vdSave(v, { due: di.value }, c7); });
+    c7.appendChild(di); tr.appendChild(c7);
+    const c8 = el("td");
+    const ss = el("select", { class: "cell vstat " + v.status, "aria-label": "Status" });
+    Object.keys(VSTATUS).forEach((k) => ss.appendChild(el("option", { value: k }, VSTATUS[k]))); ss.value = v.status;
+    ss.addEventListener("change", () => { ss.className = "cell vstat " + ss.value; vdSave(v, { status: ss.value }, c8); });
+    c8.appendChild(ss); tr.appendChild(c8);
+    tr.appendChild(vdLinkCell(v, "link", "linkText", "成片"));
+    const act = el("td");
+    const b = el("button", { type: "button", class: "undo", title: "全部栏位、备注、删除" }, "⋯"); b.addEventListener("click", () => openVdForm(v)); act.appendChild(b);
+    tr.appendChild(act);
+    return tr;
+ }
   // A designer updates their own job: status, duration, final link.
   function vdUpdateRow(v) {
     const tr = el("tr", { class: "vd-upd" }), td = el("td", { colspan: "11" }); tr.appendChild(td);
@@ -2756,6 +2886,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     state.types = d.types && d.types.length ? d.types : DEFAULT_TYPES;
     state.marketers = d.marketers || []; state.clients = d.clients || []; state.aliases = d.aliases || {};
     state.avatars = d.avatars || {}; state.email = d.me.email || "";
+    state.videoTeam = !!d.me.videoTeam; $("vVideo").hidden = !state.videoTeam;
     state.driveRoot = d.driveRoot || ""; state.drive = d.drive || {}; state.sheetUrl = d.sheetUrl || "";
     const root = safeUrl(state.driveRoot); $("driveRootBtn").hidden = !root; if (root) $("driveRootBtn").href = root;
   }
@@ -2776,7 +2907,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   function start(d) {
     applyBoot(d);
     db = true;
-    if (started) { if (state.viewer) setView(state.view, true); else { renderAll(); setView(state.view, true); } return; }   // fresh boot after the saved one
+    if (started) { const want = location.hash.slice(1) || state.view; if (state.viewer) setView(want, true); else { renderAll(); setView(want, true); if (state.videoTeam && !state.vd.open.length) loadVideoOpen(); } return; }   // fresh boot after the saved one
     started = true;
     if (state.viewer) { setView(location.hash.slice(1) === "out" ? "out" : "slot", true); ready(); setInterval(() => { if (!document.hidden) loadSlots(true); }, 60000); return; }
     ensureMonths();
@@ -2784,7 +2915,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     setView(location.hash.slice(1), true);   // re-apply now that admin status is known
     ready();
     startTimers();
-    loadVideoOpen();
+    if (state.videoTeam) loadVideoOpen();
   }
   (async () => {
     if (!TOKEN) { ready(); showNotice("这个链接不完整。请用 Jie Yi 发给你的专属链接打开。"); return; }
