@@ -560,6 +560,14 @@ input:focus, textarea:focus, select:focus { background: #fff; border-color: var(
 .group.plain input, .group.plain select, .group.plain textarea { background: #fff; border: 1px solid #E6E3DA; }
 .group.plain input:focus, .group.plain select:focus, .group.plain textarea:focus { border-color: var(--ink); }
 
+/* until boot answers, show only a loader (otherwise marketers briefly see the designer page) */
+html:not(.ready) .shell { visibility: hidden; }
+.boot-load { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: 600; color: var(--muted); z-index: 50; }
+html.ready .boot-load { display: none; }
+.boot-load .spin { width: 22px; height: 22px; border-radius: 50%; border: 3px solid rgba(43, 43, 43, .12); border-top-color: var(--ink); animation: bootspin .8s linear infinite; }
+@keyframes bootspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .boot-load .spin { animation: none; } }
+
 /* slot: legend left, week navigation right, right above the grid */
 .slotbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: -10px; }
 
@@ -589,6 +597,7 @@ input:focus, textarea:focus, select:focus { background: #fff; border-color: var(
 </style>
 
 <div id="tok" data-k="" hidden></div>
+<div class="boot-load" id="bootLoad" role="status"><span class="spin" aria-hidden="true"></span><span>载入中…</span></div>
 <div class="shell">
 <aside class="side" aria-label="看板分页">
   <div class="side-brand">
@@ -814,7 +823,7 @@ input:focus, textarea:focus, select:focus { background: #fff; border-color: var(
     <div class="panel entry" id="outFormBox">
       <div class="sec-head" style="margin-bottom:0"><h2>Outsource 申请</h2><span class="hint">交给外面的设计师之前，先在这里填一笔</span></div>
       <div class="group plain" id="outForm">
-        <div class="step"><label class="lbl" for="oDate">日期</label><div class="ctl"><input type="date" id="oDate" class="date-in"><div class="tip" id="oFree" hidden></div></div></div>
+        <div class="step"><label class="lbl" for="oDate">要几号拿到图<small>会先查那天 inhouse 还有没有位子</small></label><div class="ctl"><input type="date" id="oDate" class="date-in"><div class="tip" id="oFree" hidden></div></div></div>
         <div class="step"><div class="lbl">外包给</div><div class="ctl"><div class="chips" id="oOutside" role="group" aria-label="外包给谁"></div></div></div>
         <div class="step"><label class="lbl" for="oMarketer">Marketer</label><div class="ctl"><input type="text" id="oMarketer" maxlength="40" autocomplete="off" placeholder="你的名字"></div></div>
         <div class="step"><label class="lbl" for="oCase">Case Name</label><div class="ctl"><input type="text" id="oCase" maxlength="80" autocomplete="off" placeholder="例如：YIHETANG"></div></div>
@@ -834,7 +843,7 @@ input:focus, textarea:focus, select:focus { background: #fff; border-color: var(
         <div class="monthnav"><button type="button" id="oPrev" aria-label="上个月">‹</button><b id="oMonth">—</b><button type="button" id="oNext" aria-label="下个月">›</button></div>
       </div>
       <p class="help" id="oSummary" style="margin:0 0 10px"></p>
-      <div class="scroll"><table class="list"><thead><tr><th>日期</th><th>外包给</th><th>Marketer</th><th>Case Name</th><th>Design 类型</th><th>数量</th><th>备注</th><th></th></tr></thead><tbody id="oBody"></tbody></table></div>
+      <div class="scroll"><table class="list"><thead><tr><th>要图日期</th><th>外包给</th><th>Marketer</th><th>Case Name</th><th>Design 类型</th><th>数量</th><th>备注</th><th></th></tr></thead><tbody id="oBody"></tbody></table></div>
       <p class="empty" id="oEmpty" hidden>这个月还没有 Outsource 记录。</p>
     </div>
   </section>
@@ -1822,13 +1831,13 @@ input:focus, textarea:focus, select:focus { background: #fff; border-color: var(
     const d = $("oDate").value, box = $("oFree");
     if (!db || !/^\d{4}-\d{2}-\d{2}$/.test(d)) { box.hidden = true; return; }
     const seq = ++oCheckSeq;
-    box.hidden = false; box.className = "tip"; box.textContent = "查看这天设计师的 Slot…";
+    box.hidden = false; box.className = "tip"; box.textContent = "查看 " + d.slice(5).replace("-", "/") + " inhouse 设计师还有没有位子…";
     try {
       const r = await call("outCheck", { date: d });
       if (seq !== oCheckSeq) return;
       state.oFree = r.free;
-      if (r.free.length) { box.className = "tip warn"; box.textContent = "这天还有设计师有空位：" + r.free.join("、") + "。请先 book 他们，大家都 FULL 了才能外包。"; }
-      else { box.className = "tip okay"; box.textContent = "这天设计师都 FULL 了（或请假），可以外包。"; }
+      if (r.free.length) { box.className = "tip warn"; box.textContent = d.slice(5).replace("-", "/") + " inhouse 还有位子：" + r.free.join("、") + "。请先 book 他们，大家都 FULL 了才能外包。"; }
+      else { box.className = "tip okay"; box.textContent = d.slice(5).replace("-", "/") + " inhouse 设计师都 FULL 了（或请假），可以外包。"; }
       $("oSubmit").disabled = r.free.length > 0;
     } catch (e) { if (seq === oCheckSeq) { box.textContent = errMsg(e); } }
   }
@@ -2404,15 +2413,17 @@ input:focus, textarea:focus, select:focus { background: #fff; border-color: var(
     state.driveRoot = d.driveRoot || ""; state.drive = d.drive || {}; state.sheetUrl = d.sheetUrl || "";
     const root = safeUrl(state.driveRoot); $("driveRootBtn").hidden = !root; if (root) $("driveRootBtn").href = root;
   }
+  const ready = () => document.documentElement.classList.add("ready");
   (async () => {
-    if (!TOKEN) { showNotice("这个链接不完整。请用 Jie Yi 发给你的专属链接打开。"); return; }
+    if (!TOKEN) { ready(); showNotice("这个链接不完整。请用 Jie Yi 发给你的专属链接打开。"); return; }
     try { applyBoot(await call("boot")); }
-    catch (e) { showNotice(e && e.message === "bad_link" ? "这个链接不对或已经失效，请找 Jie Yi 要你的专属链接。" : "连不上资料表，请重新整理页面。"); return; }
+    catch (e) { ready(); showNotice(e && e.message === "bad_link" ? "这个链接不对或已经失效，请找 Jie Yi 要你的专属链接。" : "连不上资料表，请重新整理页面。"); return; }
     db = true;
-    if (state.viewer) { setView(location.hash.slice(1) === "out" ? "out" : "slot", true); setInterval(() => { if (!document.hidden) loadSlots(true); }, 60000); return; }
+    if (state.viewer) { setView(location.hash.slice(1) === "out" ? "out" : "slot", true); ready(); setInterval(() => { if (!document.hidden) loadSlots(true); }, 60000); return; }
     ensureMonths();
     renderAll();
     setView(location.hash.slice(1), true);   // re-apply now that admin status is known
+    ready();
     // No live updates in Apps Script: refresh the months on screen every minute while the tab is visible.
     setInterval(() => {
       if (document.hidden || state.editing || state.ogOpen || (state.pending && state.pending.length)) return;
