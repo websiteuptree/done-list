@@ -727,7 +727,13 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
 .vdlist tr.vd-week > td { background: #F4F3EE !important; height: auto; padding: 10px 12px; border-top: 10px solid #fff; border-bottom: none; border-radius: 0; }
 .vdlist tbody tr.vd-week:first-child > td { border-top: none; }
 .vd-wk { display: flex; align-items: center; gap: 18px; flex-wrap: nowrap; }
-.vd-wk-title { display: flex; align-items: baseline; gap: 8px; width: 170px; flex: none; }
+.vd-wk-title { display: flex; align-items: center; gap: 8px; width: 236px; flex: none; border: none; background: none; white-space: nowrap; padding: 4px 6px; margin: -4px -6px; border-radius: 8px; text-align: left; cursor: pointer; color: inherit; }
+.vd-wk-title:hover { background: rgba(0, 0, 0, .05); }
+.vd-chev { width: 16px; height: 16px; flex: none; display: inline-flex; transition: transform .25s ease; transform: rotate(90deg); }
+.vd-chev svg { width: 16px; height: 16px; fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.vd-week.shut .vd-chev { transform: rotate(0deg); }
+.vd-wk-n { font-size: 11.5px; font-weight: 700; color: var(--muted); background: #fff; border-radius: 999px; padding: 1px 8px; }
+.vdlist tr.vd-week.shut > td { opacity: .92; }
 .vd-wk-title b { font-size: 14.5px; font-weight: 800; }
 .vd-wk-title span { color: #9A988F; font-size: 12px; white-space: nowrap; }
 .vd-meter { display: flex; align-items: center; gap: 10px; width: 230px; flex: none; }
@@ -1002,7 +1008,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
           <input type="search" id="vdSearch" placeholder="搜 Client / Content / PIC" aria-label="搜索" style="width:220px;padding:7px 12px">
           <select id="vdWho" aria-label="按设计师筛选"><option value="">全部设计师</option></select>
         </div>
-        <div class="toolbar"><span class="help" id="vdLoad"></span><button type="button" class="plainbtn" id="vdQuotaBtn" hidden>每周名额</button><button type="button" class="submit vd-new" id="vdNew" hidden>+ 开新单</button></div>
+        <div class="toolbar"><span class="help" id="vdLoad"></span><button type="button" class="plainbtn" id="vdFoldAll">全部收起</button><button type="button" class="plainbtn" id="vdQuotaBtn" hidden>每周名额</button><button type="button" class="submit vd-new" id="vdNew" hidden>+ 开新单</button></div>
       </div>
       <div class="vd-form" id="vdForm" hidden></div>
       <div class="scroll"><table class="list vdlist"><colgroup><col class="c-client"><col class="c-content"><col class="c-type"><col class="c-dur"><col class="c-pic"><col class="c-des"><col class="c-due"><col class="c-st"><col class="c-link"><col class="c-act"></colgroup><thead><tr><th>Client / Project</th><th>Content</th><th>Video Type</th><th>Duration</th><th>PIC</th><th>Designer</th><th>Due</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
@@ -2523,8 +2529,11 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     if (noFilter) vdMonthWeeks(m).forEach((w) => groups.set(w, []));
     list.forEach((v) => { const w = v.due ? mondayOf(v.due) : "none"; if (!groups.has(w)) groups.set(w, []); groups.get(w).push(v); });
     const keys = [...groups.keys()].sort((a, b) => a === "none" ? 1 : b === "none" ? -1 : a.localeCompare(b));
+    state.vd.shownWeeks = keys;
+    $("vdFoldAll").textContent = keys.length && keys.every(vdIsShut) ? "全部展开" : "全部收起";
     keys.forEach((w, gi) => {
-      body.appendChild(vdWeekHead(w, rows.filter((v) => (v.due ? mondayOf(v.due) : "none") === w), gi));
+      body.appendChild(vdWeekHead(w, rows.filter((v) => (v.due ? mondayOf(v.due) : "none") === w), gi, groups.get(w).length));
+      if (vdIsShut(w)) return;
       if (state.vd.qEdit === w) body.appendChild(vdQuotaRow(w));
       groups.get(w).forEach((v, ri) => { const tr = vdRow(v, t); if (ri === groups.get(w).length - 1) tr.classList.add("wk-last"); body.appendChild(tr); });
     });
@@ -2774,15 +2783,31 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     return names.sort((a, b) => state.designers.indexOf(a) - state.designers.indexOf(b));
   }
   function quotaOf(w, n) { const q = state.vd.quota || { def: {}, weeks: {} }; const o = q.weeks[w] || {}; return n in o ? Number(o[n]) : Number(q.def[n] || 0); }
-  function vdWeekHead(w, weekRows, gi) {
-    const tr = el("tr", { class: "vd-week" }), td = el("td", { colspan: "10" }); tr.appendChild(td);
+  // Weeks can be folded; the choice is kept in this browser.
+  const VD_FOLD = "dl1:vdFolded";
+  state.vd.folded = (() => { try { return new Set(JSON.parse(localStorage.getItem(VD_FOLD) || "[]")); } catch (e) { return new Set(); } })();
+  function vdIsShut(w) { return state.vd.folded.has(w); }
+  function vdFold(ws, shut) {
+    ws.forEach((w) => { if (shut) state.vd.folded.add(w); else state.vd.folded.delete(w); });
+    try { localStorage.setItem(VD_FOLD, JSON.stringify([...state.vd.folded].slice(-200))); } catch (e) {}
+    renderVideos();
+  }
+  function vdWeekTitle(w, label, sub, n) {
+    const shut = vdIsShut(w);
+    const b = el("button", { type: "button", class: "vd-wk-title", "aria-expanded": String(!shut), title: shut ? "展开这周" : "收起这周" });
+    const ch = el("i", { class: "vd-chev" }); ch.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>'; b.appendChild(ch);
+    b.appendChild(el("b", null, label));
+    if (sub) b.appendChild(el("span", null, sub));
+    if (shut) b.appendChild(el("span", { class: "vd-wk-n" }, n + " 张"));
+    b.addEventListener("click", () => vdFold([w], !shut));
+    return b;
+  }
+  function vdWeekHead(w, weekRows, gi, nShown) {
+    const tr = el("tr", { class: "vd-week" + (vdIsShut(w) ? " shut" : "") }), td = el("td", { colspan: "10" }); tr.appendChild(td);
     const wrap = el("div", { class: "vd-wk" });
-    if (w === "none") { const t0 = el("div", { class: "vd-wk-title" }); t0.appendChild(el("b", null, "还没定 Due")); wrap.appendChild(t0); td.appendChild(wrap); return tr; }
+    if (w === "none") { wrap.appendChild(vdWeekTitle(w, "还没定 Due", "", nShown)); td.appendChild(wrap); return tr; }
     const fri = addDays(w, 4), sun = addDays(w, 6), md = (d) => Number(d.slice(8, 10)) + "/" + Number(d.slice(5, 7));
-    const title = el("div", { class: "vd-wk-title" });
-    title.appendChild(el("b", null, md(fri) + " 那周"));
-    title.appendChild(el("span", null, md(w) + " – " + md(sun)));
-    wrap.appendChild(title);
+    wrap.appendChild(vdWeekTitle(w, md(fri) + " 那周", md(w) + " – " + md(sun), nShown));
     const team = vdTeam(), used = {}; let none = 0;
     weekRows.forEach((v) => { const ns = vdNames(v.designer); if (!ns.length) none++; ns.forEach((n) => { const k = team.find((x) => norm(x) === norm(n)) || n; used[k] = (used[k] || 0) + 1; }); });
     const cap = team.reduce((a, n) => a + quotaOf(w, n), 0), booked = weekRows.length;
@@ -2857,6 +2882,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     add.appendChild(close);
     box.appendChild(add);
   }
+  $("vdFoldAll").addEventListener("click", () => { const ws = state.vd.shownWeeks || []; vdFold(ws, !ws.every(vdIsShut)); });
   $("vdQuotaBtn").addEventListener("click", () => { const box = $("vdForm"); if (box.dataset.kind === "quota" && !box.hidden) { box.hidden = true; box.dataset.kind = ""; return; } box.hidden = false; box.dataset.kind = "quota"; renderQuotaPanel(); });
 
   /* ---------- 我的本月: one person's month (admin can pick anyone) ---------- */
