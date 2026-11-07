@@ -2807,7 +2807,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const wrap = el("div", { class: "vd-wk" });
     if (w === "none") { wrap.appendChild(vdWeekTitle(w, "还没定 Due", "", nShown)); td.appendChild(wrap); return tr; }
     const fri = addDays(w, 4), sun = addDays(w, 6), md = (d) => Number(d.slice(8, 10)) + "/" + Number(d.slice(5, 7));
-    wrap.appendChild(vdWeekTitle(w, md(fri) + " 那周", md(w) + " – " + md(sun), nShown));
+    const mw = vdMonthWeeks(state.vd.month), wn = mw.indexOf(w) >= 0 ? mw.indexOf(w) + 1 : mw.filter((x) => x < w).length + 1;
+    wrap.appendChild(vdWeekTitle(w, "Week " + wn, "(" + md(w) + " - " + md(sun) + ")", nShown));
     const team = vdTeam(), used = {}; let none = 0;
     weekRows.forEach((v) => { const ns = vdNames(v.designer); if (!ns.length) none++; ns.forEach((n) => { const k = team.find((x) => norm(x) === norm(n)) || n; used[k] = (used[k] || 0) + 1; }); });
     const cap = team.reduce((a, n) => a + quotaOf(w, n), 0), booked = weekRows.length;
