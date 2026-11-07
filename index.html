@@ -2431,6 +2431,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     }
     state.vd.open = res.open || state.vd.open;
     if (res.quota) state.vd.quota = res.quota;
+    if ("notify" in res) state.vd.notify = !!res.notify;
     state.vd.months = res.months || state.vd.months;
     cacheSet("v:" + (res.month || "open"), res);
     renderVidPick();
@@ -2611,7 +2612,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       let picked = vdNames(v.designer).map((n) => state.designers.find((d) => norm(d) === norm(n)) || n);
       const start = picked.join("、");
       vdPop(c6, (pop) => {
-        pop.appendChild(el("div", { class: "help" }, "选谁做（新选的人会收到 email）"));
+        pop.appendChild(el("div", { class: "help" }, state.vd.notify ? "选谁做（新选的人会收到 email）" : "选谁做"));
         const chips = el("div", { class: "chips" }); pop.appendChild(chips);
         const draw = () => { chips.textContent = ""; state.designers.forEach((n) => {
           const b = el("button", { type: "button", class: "chip small", "aria-pressed": String(picked.includes(n)) });
@@ -2684,7 +2685,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     box.appendChild(g);
     // designers: chips, several allowed; none = Not Yet Assign
     let picked = vdNames(v.designer).map((n) => state.designers.find((d) => norm(d) === norm(n)) || n);
-    const dl = el("div", { class: "vd-des" }); dl.appendChild(el("span", { class: "lbl2" }, "Designer（选了就会 email 通知他）"));
+    const dl = el("div", { class: "vd-des" }); dl.appendChild(el("span", { class: "lbl2" }, state.vd.notify ? "Designer（选了就会 email 通知他）" : "Designer"));
     const chips = el("div", { class: "chips" }); dl.appendChild(chips);
     const drawChips = () => {
       chips.textContent = "";
