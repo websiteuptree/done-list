@@ -689,7 +689,6 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   html.side-mini .side { scrollbar-width: none; padding-left: 14px; padding-right: 14px; }
   html.side-mini .side::-webkit-scrollbar { width: 0; }
   html.side-mini .side-nav button, html.side-mini .side-link, html.side-mini .side-team { justify-content: center; width: 60px; margin-left: auto; margin-right: auto; padding-left: 0; padding-right: 0; box-sizing: border-box; }
-  html.side-mini .side-nav button > span:not(.avatar), html.side-mini .side-team > span, html.side-mini .side-link > span { position: absolute; pointer-events: none; }
   html.side-mini .side-brand { padding-left: 0; padding-right: 0; }
   html.side-mini .side-brand .logo-mini { left: 50%; margin-left: -18px; }
   .side-toggle { position: fixed; z-index: 60; top: 40px; left: calc(var(--side-w) - 15px); width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--edge); background: #fff; box-shadow: 0 6px 16px rgba(0, 0, 0, .12); display: grid; place-items: center; padding: 0; transition: left .45s var(--side-ease), box-shadow .2s, transform .2s; }
@@ -699,6 +698,56 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
 }
 @media (max-width: 860px) { .side-toggle, .side-brand .logo-mini { display: none; } }
 @media (prefers-reduced-motion: reduce) { .shell, .side, .side-toggle, .side-toggle svg, .side-brand img, .side-nav button > span { transition: none !important; } }
+
+
+/* ===== AI Video table, tidy: fixed columns, quiet cells, one clear header per week ===== */
+.vdlist { table-layout: fixed; width: 100%; min-width: 1180px; border-collapse: separate; border-spacing: 0; }
+.vdlist col.c-client { width: 150px; } .vdlist col.c-content { width: 210px; } .vdlist col.c-type { width: 110px; }
+.vdlist col.c-dur { width: 78px; } .vdlist col.c-pic { width: 108px; } .vdlist col.c-des { width: 140px; }
+.vdlist col.c-due { width: 118px; } .vdlist col.c-st { width: 128px; } .vdlist col.c-link { width: 200px; } .vdlist col.c-act { width: 36px; }
+.vdlist thead th { font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #9A988F; padding: 0 10px 10px; border-bottom: 1px solid var(--line); }
+.vdlist tbody td { padding: 0 10px; height: 50px; border-bottom: 1px solid #F0EEE8; overflow: hidden; }
+.vdlist tbody tr:not(.vd-week):not(.vd-qedit):hover td { background: #FBFAF6; }
+.vdlist tr.mine td:first-child { box-shadow: none; }
+.vdlist tr.mine .vd-client input.cell { box-shadow: inset 3px 0 0 var(--hl); padding-left: 11px; }
+.vdlist tr.wk-last td { border-bottom: none; }
+.vdlist input.cell, .vdlist select.cell { margin: 0 -8px; width: calc(100% + 16px); min-width: 0 !important; height: 34px; box-sizing: border-box; text-overflow: ellipsis; }
+.vdlist input.cell:hover, .vdlist select.cell:hover { border-color: transparent; background: rgba(0, 0, 0, .035); }
+.vdlist .vd-client input.cell { font-weight: 700; }
+.vdlist input[type="date"].cell { width: calc(100% + 16px); color: var(--fg); font-variant-numeric: tabular-nums; }
+.vdlist input[type="date"].cell::-webkit-calendar-picker-indicator { opacity: 0; margin-left: 0; cursor: pointer; }
+.vdlist input[type="date"].cell:hover::-webkit-calendar-picker-indicator, .vdlist input[type="date"].cell:focus::-webkit-calendar-picker-indicator { opacity: .5; }
+.vdlist .vd-due.late input.cell { color: var(--bad); }
+.vdlist select.cell.vstat { width: auto; margin: 0; height: 28px; }
+.vd-linkcell { display: table-cell; }
+.vd-linkcell .vchip { max-width: calc(100% - 22px); }
+.vd-desbtn { width: calc(100% + 12px); overflow: hidden; }
+.vd-who .who-row span:last-child { overflow: hidden; text-overflow: ellipsis; }
+/* week header */
+.vdlist tr.vd-week > td { background: #F4F3EE !important; height: auto; padding: 10px 12px; border-top: 10px solid #fff; border-bottom: none; border-radius: 0; }
+.vdlist tbody tr.vd-week:first-child > td { border-top: none; }
+.vd-wk { display: flex; align-items: center; gap: 18px; flex-wrap: nowrap; }
+.vd-wk-title { display: flex; align-items: baseline; gap: 8px; width: 170px; flex: none; }
+.vd-wk-title b { font-size: 14.5px; font-weight: 800; }
+.vd-wk-title span { color: #9A988F; font-size: 12px; white-space: nowrap; }
+.vd-meter { display: flex; align-items: center; gap: 10px; width: 230px; flex: none; }
+.vd-meter-bar { flex: 1; height: 6px; border-radius: 999px; background: rgba(0, 0, 0, .08); overflow: hidden; }
+.vd-meter-bar i { display: block; height: 100%; background: var(--ink); border-radius: 999px; }
+.vd-meter.full .vd-meter-bar i { background: var(--ok); }
+.vd-meter.over .vd-meter-bar i { background: var(--bad); }
+.vd-meter-txt { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.vd-meter-txt b { color: var(--fg); font-size: 13px; margin-right: 2px; }
+.vd-meter.over .vd-meter-txt { color: var(--bad); }
+.vd-wk-ppl { display: flex; align-items: center; gap: 6px; flex: 1; flex-wrap: wrap; min-width: 0; }
+.vd-q { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 2px; border-radius: 999px; background: #fff; border: none; font-size: 12px; color: var(--muted); }
+.vd-q b { color: var(--fg); font-weight: 700; }
+.vd-q.full { background: var(--ok-soft); } .vd-q.full b { color: var(--ok); }
+.vd-q.over { background: var(--bad-soft); } .vd-q.over b { color: var(--bad); }
+.vd-q.off { opacity: .4; }
+.vd-q.none { padding: 3px 10px; background: transparent; color: var(--bad); font-weight: 700; }
+.vd-wk-edit { margin-left: auto; flex: none; border: none; background: none; color: #9A988F; font-size: 12.5px; font-weight: 600; padding: 4px 8px; border-radius: 8px; }
+.vd-wk-edit:hover { color: var(--ink); background: rgba(0, 0, 0, .05); }
+.vdlist tr.vd-qedit > td { height: auto; padding: 10px 12px 12px; background: #F4F3EE !important; border-bottom: none; }
 
 /* slot: legend left, week navigation right, right above the grid */
 .slotbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: -10px; }
@@ -956,7 +1005,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         <div class="toolbar"><span class="help" id="vdLoad"></span><button type="button" class="plainbtn" id="vdQuotaBtn" hidden>每周名额</button><button type="button" class="submit vd-new" id="vdNew" hidden>+ 开新单</button></div>
       </div>
       <div class="vd-form" id="vdForm" hidden></div>
-      <div class="scroll"><table class="list vdlist"><thead><tr><th>Client / Project</th><th>Content</th><th>Video Type</th><th>Duration</th><th>PIC</th><th>Designer</th><th>Due</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
+      <div class="scroll"><table class="list vdlist"><colgroup><col class="c-client"><col class="c-content"><col class="c-type"><col class="c-dur"><col class="c-pic"><col class="c-des"><col class="c-due"><col class="c-st"><col class="c-link"><col class="c-act"></colgroup><thead><tr><th>Client / Project</th><th>Content</th><th>Video Type</th><th>Duration</th><th>PIC</th><th>Designer</th><th>Due</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
       <p class="empty" id="vdEmpty" hidden>这个月还没有 AI Video 单。</p>
     </div>
     <datalist id="vdTypeList"></datalist><datalist id="vdMkList"></datalist>
@@ -2476,7 +2525,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     keys.forEach((w, gi) => {
       body.appendChild(vdWeekHead(w, rows.filter((v) => (v.due ? mondayOf(v.due) : "none") === w), gi));
       if (state.vd.qEdit === w) body.appendChild(vdQuotaRow(w));
-      groups.get(w).forEach((v) => { const tr = vdRow(v, t); tr.classList.add(gi % 2 ? "band-b" : "band-a"); body.appendChild(tr); });
+      groups.get(w).forEach((v, ri) => { const tr = vdRow(v, t); if (ri === groups.get(w).length - 1) tr.classList.add("wk-last"); body.appendChild(tr); });
     });
     $("vdEmpty").hidden = list.length > 0 || keys.length > 0;
   }
@@ -2725,38 +2774,38 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   }
   function quotaOf(w, n) { const q = state.vd.quota || { def: {}, weeks: {} }; const o = q.weeks[w] || {}; return n in o ? Number(o[n]) : Number(q.def[n] || 0); }
   function vdWeekHead(w, weekRows, gi) {
-    const tr = el("tr", { class: "vd-week " + (gi % 2 ? "band-b" : "band-a") }), td = el("td", { colspan: "10" }); tr.appendChild(td);
+    const tr = el("tr", { class: "vd-week" }), td = el("td", { colspan: "10" }); tr.appendChild(td);
     const wrap = el("div", { class: "vd-wk" });
-    if (w === "none") { wrap.appendChild(el("b", null, "还没定 Due")); td.appendChild(wrap); return tr; }
-    const fri = addDays(w, 4), sun = addDays(w, 6);
-    const md = (d) => Number(d.slice(5, 7)) + "/" + Number(d.slice(8, 10));
+    if (w === "none") { const t0 = el("div", { class: "vd-wk-title" }); t0.appendChild(el("b", null, "还没定 Due")); wrap.appendChild(t0); td.appendChild(wrap); return tr; }
+    const fri = addDays(w, 4), sun = addDays(w, 6), md = (d) => Number(d.slice(8, 10)) + "/" + Number(d.slice(5, 7));
     const title = el("div", { class: "vd-wk-title" });
     title.appendChild(el("b", null, md(fri) + " 那周"));
-    title.appendChild(el("span", null, md(w) + "–" + md(sun)));
+    title.appendChild(el("span", null, md(w) + " – " + md(sun)));
     wrap.appendChild(title);
-    const team = vdTeam();
-    const used = {}; let none = 0;
+    const team = vdTeam(), used = {}; let none = 0;
     weekRows.forEach((v) => { const ns = vdNames(v.designer); if (!ns.length) none++; ns.forEach((n) => { const k = team.find((x) => norm(x) === norm(n)) || n; used[k] = (used[k] || 0) + 1; }); });
-    const cap = team.reduce((a, n) => a + quotaOf(w, n), 0), booked = weekRows.length, left = cap - booked;
-    const sum = el("div", { class: "vd-wk-sum" + (left < 0 ? " over" : left === 0 ? " full" : "") });
-    sum.appendChild(el("span", null, "名额 ")); sum.appendChild(el("b", { class: "num" }, String(cap)));
-    sum.appendChild(el("span", null, " · 已排 ")); sum.appendChild(el("b", { class: "num" }, String(booked)));
-    sum.appendChild(el("span", null, left < 0 ? " · 超出 " : " · 还可以排 ")); sum.appendChild(el("b", { class: "num" }, String(Math.abs(left))));
-    if (none) sum.appendChild(el("span", { class: "vd-wk-none" }, none + " 张还没分"));
-    wrap.appendChild(sum);
+    const cap = team.reduce((a, n) => a + quotaOf(w, n), 0), booked = weekRows.length;
+    const meter = el("div", { class: "vd-meter" + (booked > cap ? " over" : booked === cap ? " full" : "") });
+    const bar = el("div", { class: "vd-meter-bar" }), fill = el("i"); fill.style.width = Math.min(100, cap ? booked / cap * 100 : booked ? 100 : 0) + "%"; bar.appendChild(fill);
+    meter.appendChild(bar);
+    const txt = el("span", { class: "vd-meter-txt" });
+    txt.appendChild(el("b", { class: "num" }, booked + " / " + cap));
+    txt.appendChild(document.createTextNode(booked > cap ? " 超出 " + (booked - cap) : booked === cap ? " 已排满" : " 还可以排 " + (cap - booked)));
+    meter.appendChild(txt);
+    wrap.appendChild(meter);
     const ppl = el("div", { class: "vd-wk-ppl" });
     team.forEach((n) => {
       const q = quotaOf(w, n), u = used[n] || 0;
-      const c = el("span", { class: "vd-q" + (u > q ? " over" : u === q ? " full" : "") + (q === 0 && !u ? " off" : ""), title: n + "：这周 " + q + " 个，已分 " + u + " 个" });
+      const c = el("span", { class: "vd-q" + (u > q ? " over" : u === q && q > 0 ? " full" : "") + (q === 0 && !u ? " off" : ""), title: n + "：这周名额 " + q + "，已分 " + u });
       c.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n));
-      c.appendChild(el("span", null, n.split(" ")[0]));
       c.appendChild(el("b", { class: "num" }, u + "/" + q));
       ppl.appendChild(c);
     });
-    Object.keys(used).filter((n) => !team.includes(n)).forEach((n) => { const c = el("span", { class: "vd-q over", title: n + " 没有设名额" }); c.appendChild(el("span", null, n.split(" ")[0])); c.appendChild(el("b", { class: "num" }, used[n] + "/0")); ppl.appendChild(c); });
+    Object.keys(used).filter((n) => !team.includes(n)).forEach((n) => { const c = el("span", { class: "vd-q over", title: n + " 没有设名额" }); c.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n)); c.appendChild(el("b", { class: "num" }, used[n] + "/0")); ppl.appendChild(c); });
+    if (none) ppl.appendChild(el("span", { class: "vd-q none", title: none + " 张还没分给人" }, none + " 张未分"));
     wrap.appendChild(ppl);
     if (state.videoTeam) {
-      const b = el("button", { type: "button", class: "undo" }, state.vd.qEdit === w ? "收起" : "改这周名额");
+      const b = el("button", { type: "button", class: "vd-wk-edit" }, state.vd.qEdit === w ? "完成" : "改名额");
       b.addEventListener("click", () => { state.vd.qEdit = state.vd.qEdit === w ? "" : w; renderVideos(); });
       wrap.appendChild(b);
     }
