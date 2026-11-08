@@ -2068,7 +2068,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       if (seq !== oCheckSeq) return;
       state.oFree = r.free;
       if (r.free.length) { box.className = "tip warn"; box.textContent = d.slice(5).replace("-", "/") + " inhouse 还有位子：" + r.free.join("、") + "。请先 book 他们，大家都 FULL 了才能外包。"; }
-      else { box.className = "tip okay"; box.textContent = d.slice(5).replace("-", "/") + " inhouse 设计师都 FULL 了（或请假），可以外包。"; }
+      else { box.className = "tip okay"; const dd = d.slice(5).replace("-", "/");
+        box.textContent = r.off === "weekend" ? dd + " 是周末，inhouse 不接图，可以外包。" : r.off === "holiday" ? dd + " 是全组假期，inhouse 不接图，可以外包。" : dd + " inhouse 设计师都 FULL 了" + (r.leave && r.leave.length ? "（" + r.leave.join("、") + " 请假）" : "") + "，可以外包。"; }
       $("oSubmit").disabled = r.free.length > 0;
     } catch (e) { if (seq === oCheckSeq) { box.textContent = errMsg(e); } }
   }
