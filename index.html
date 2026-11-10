@@ -755,6 +755,13 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
 .vd-wk-edit:hover { color: var(--ink); background: rgba(0, 0, 0, .05); }
 .vdlist tr.vd-qedit > td { height: auto; padding: 10px 12px 12px; background: #F4F3EE !important; border-bottom: none; }
 
+/* fields inside white cards (进行中 forms, 修改 forms, slot edit) get a grey box so it's clear you can type there */
+.og-item input, .og-item textarea, .og-item select, .edit-form input, .edit-form textarea, .edit-form select, .slot-edit input, .slot-edit select, .vd-form input, .vd-form select, .vd-form textarea {
+  background: #F3F2EC; border: 1px solid transparent; border-radius: 12px; }
+.og-item input:focus, .og-item textarea:focus, .og-item select:focus, .edit-form input:focus, .edit-form textarea:focus, .edit-form select:focus, .slot-edit input:focus, .slot-edit select:focus {
+  background: #fff; border-color: var(--ink); }
+.og-form input[type="number"] { padding: 8px 10px; }
+
 /* slot: legend left, week navigation right, right above the grid */
 .slotbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: -10px; }
 
