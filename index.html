@@ -1055,6 +1055,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
           <button type="button" class="chip" id="oAB" aria-pressed="false">AB TEST</button>
         </div></div></div>
         <div class="step"><label class="lbl" for="oQty">Task 数量</label><div class="ctl"><input type="number" id="oQty" min="1" max="20" value="1" style="width:90px"></div></div>
+        <div class="step"><label class="lbl" for="oEnd">Client end date<small>选填 · 客户那边最后期限</small></label><div class="ctl"><input type="date" id="oEnd" class="date-in"></div></div>
+        <div class="step"><label class="lbl" for="oReason">为什么要外包</label><div class="ctl"><div class="chips" id="oReasonChips"></div><textarea id="oReason" maxlength="300" placeholder="例如：Client 15/11 要上广告，13/11 前一定要出图，inhouse 那几天都 FULL 了"></textarea></div></div>
         <div class="step"><label class="lbl" for="oNote">备注<small>选填</small></label><div class="ctl"><input type="text" id="oNote" maxlength="200"></div></div>
       </div>
       <div class="submit-row"><button type="button" class="submit" id="oSubmit">提交</button><span class="status" id="oStatus" role="status"></span></div>
@@ -1065,7 +1067,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         <div class="monthnav"><button type="button" id="oPrev" aria-label="上个月">‹</button><b id="oMonth">—</b><button type="button" id="oNext" aria-label="下个月">›</button></div>
       </div>
       <p class="help" id="oSummary" style="margin:0 0 10px"></p>
-      <div class="scroll"><table class="list"><thead><tr><th>要图日期</th><th>外包给</th><th>Marketer</th><th>Case Name</th><th>Design 类型</th><th>数量</th><th>备注</th><th></th></tr></thead><tbody id="oBody"></tbody></table></div>
+      <div class="scroll"><table class="list"><thead><tr><th>要图日期</th><th>外包给</th><th>Marketer</th><th>Case Name</th><th>Design 类型</th><th>数量</th><th>为什么外包</th><th>备注</th><th></th></tr></thead><tbody id="oBody"></tbody></table></div>
       <p class="empty" id="oEmpty" hidden>这个月还没有 Outsource 记录。</p>
     </div>
   </section>
@@ -2081,6 +2083,11 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     } catch (e) { if (seq === oCheckSeq) { box.textContent = errMsg(e); } }
   }
   $("oDate").addEventListener("change", checkOutDate);
+  ["inhouse 那天都 FULL 了", "Client 赶 deadline", "周末 / 假期要出图", "需要特别风格"].forEach((txt) => {
+    const b = el("button", { type: "button", class: "chip small" }, txt);
+    b.addEventListener("click", () => { const r = $("oReason"); if (!r.value.includes(txt)) r.value = (r.value.trim() ? r.value.trim() + "，" : "") + txt; r.focus(); });
+    $("oReasonChips").appendChild(b);
+  });
   async function loadOut() {
     if (!db) return;
     if (!state.oMonth) state.oMonth = today().slice(0, 7);
@@ -2107,6 +2114,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       tr.appendChild(el("td", null, r.client));
       tr.appendChild(el("td", null, r.type));
       tr.appendChild(el("td", { class: "q num" }, String(nOf(r))));
+      tr.appendChild(el("td", { class: "note" }, (r.clientEnd ? "Client end " + Number(r.clientEnd.slice(8, 10)) + "/" + Number(r.clientEnd.slice(5, 7)) + " · " : "") + (r.reason || "")));
       tr.appendChild(el("td", { class: "note" }, r.note || ""));
       const act = el("td");
       if (canManage()) {
@@ -2134,12 +2142,14 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     if (!marketer) { oStatus("请填你的名字。", "bad"); $("oMarketer").focus(); return; }
     if (!client) { oStatus("请填 Case Name。", "bad"); $("oCase").focus(); return; }
     const qty = Math.max(1, Math.min(20, Math.round(Number($("oQty").value)) || 1));
+    const reason = $("oReason").value.trim(), clientEnd = $("oEnd").value;
+    if (!reason) { oStatus("请写为什么要外包。", "bad"); $("oReason").focus(); return; }
     const b = $("oSubmit"); b.disabled = true;
     try {
-      const d = await call("outAdd", { date, designer, marketer, client, type: state.oType, qty, note: $("oNote").value.trim() });
+      const d = await call("outAdd", { date, designer, marketer, client, type: state.oType, qty, reason, clientEnd, note: $("oNote").value.trim() });
       state.oMonth = date.slice(0, 7); $("oMonth").textContent = monthLabel(state.oMonth); renderOut(d);
       oStatus("已提交：" + client + " · " + state.oType + " × " + qty + " · 外包给 " + designer, "ok");
-      $("oCase").value = ""; $("oNote").value = ""; $("oQty").value = 1; setOType("单图"); state.oIn = ""; state.oOut = ""; renderOutChips();
+      $("oCase").value = ""; $("oNote").value = ""; $("oQty").value = 1; $("oReason").value = ""; $("oEnd").value = ""; setOType("单图"); state.oIn = ""; state.oOut = ""; renderOutChips();
     } catch (e) { oStatus(errMsg(e), "bad"); }
     finally { b.disabled = (state.oFree || []).length > 0; }
   });
