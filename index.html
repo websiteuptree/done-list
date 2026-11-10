@@ -1564,10 +1564,14 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         go.addEventListener("click", async () => {
           if (!ta.value.trim()) { st.textContent = "写一下今天做了什么。"; st.className = "status bad"; return; }
           const what = ta.value.trim(), date = state.date;
-          const pend = addPending("progress", { caseId: c.id, date, designer: c.designer, client: c.client, type: c.type, what, link: "" });
-          state.ogOpen = ""; setStatus("已记进度：" + c.client + " · 同步中…", "ok"); renderAll(); if (state.day !== date) setDay(date);
-          try { const res = await call("addProg", { caseId: c.id, date, what }); dropPending(pend); putMonth(res); renderAll(); if (!state.pending.length) setStatus("已记进度：" + c.client + " ✓ 已存好", "ok"); }
-          catch (e) { dropPending(pend); state.ogOpen = c.id + ":p"; renderAll(); setStatus("进度没存到：" + errMsg(e) + " 请再记一次。", "bad"); }
+          const same = ((state.months[date.slice(0, 7)] || {}).progress || []).find((r) => r.caseId === c.id && r.date === date && !r.pending);
+          const undo = same ? { what: same.what, updatedAt: same.updatedAt } : null;
+          let pend = null;
+          if (same) { same.what = (same.what ? same.what + "\n" : "") + what; same.updatedAt = new Date().toISOString(); same.syncing = true; }
+          else pend = addPending("progress", { caseId: c.id, date, designer: c.designer, client: c.client, type: c.type, what, link: "" });
+          state.ogOpen = ""; setStatus((same ? "已更新今天的进度：" : "已记进度：") + c.client + " · 同步中…", "ok"); renderAll(); if (state.day !== date) setDay(date);
+          try { const res = await call("addProg", { caseId: c.id, date, what }); if (pend) dropPending(pend); putMonth(res); renderAll(); if (!state.pending.length) setStatus((same ? "已更新今天的进度：" : "已记进度：") + c.client + " ✓ 已存好", "ok"); }
+          catch (e) { if (pend) dropPending(pend); if (same) { same.what = undo.what; same.updatedAt = undo.updatedAt; delete same.syncing; } ta.value = what; state.ogOpen = c.id + ":p"; renderAll(); setStatus("进度没存到：" + errMsg(e) + " 请再记一次。", "bad"); }
         });
         f.appendChild(el("span", { class: "help" }, "记在 " + state.date + "（上面「哪一天做的」可以改日期）"));
         f.appendChild(ta); f.appendChild(go); f.appendChild(st); item.appendChild(f);
@@ -1716,7 +1720,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const field = (k, label, type, val) => {
       const l = el("label", null, label);
       let i;
-      if (type === "textarea") { i = el("textarea", { maxlength: "300" }); i.value = val || ""; }
+      if (type === "textarea") { i = el("textarea", { maxlength: kind === "progress" ? "1000" : "300" }); i.value = val || ""; }
       else if (type === "select") {
         i = el("select");
         const opts = state.types.filter((t) => t !== OTHER).concat(val && !state.types.includes(val) ? [val] : [], [OTHER]);
@@ -1778,9 +1782,11 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const txt = el("span", { class: "txt" });
     const u = safeUrl(x.link);
     if (u) txt.appendChild(el("a", { href: u, target: "_blank", rel: "noopener" }, x.client || "未填")); else txt.appendChild(el("b", null, x.client || "未填"));
-    txt.appendChild(el("span", { class: "meta" }, [x.type, x.what, timeOf(x.createdAt)].filter(Boolean).join(" · ")));
+    const steps = String(x.what || "").split("\n").map((t) => t.trim()).filter(Boolean);
+    const t0 = timeOf(x.createdAt), t1 = x.updatedAt ? timeOf(x.updatedAt) : "";
+    txt.appendChild(el("span", { class: "meta" }, [x.type, steps.join(" → "), t1 && t1 !== t0 ? t0 + " 开始 · " + t1 + " 更新" : t0].filter(Boolean).join(" · ")));
     li.appendChild(txt);
-    li.appendChild(x.pending ? el("span", { class: "help" }, "同步中…") : db && (x.designer === state.me || canManage()) ? editButton(x, "progress") : el("span"));
+    li.appendChild(x.pending || x.syncing ? el("span", { class: "help" }, "同步中…") : db && (x.designer === state.me || canManage()) ? editButton(x, "progress") : el("span"));
     if (state.editing === "progress:" + x.id) li.appendChild(editForm(x, "progress"));
     return li;
   }
