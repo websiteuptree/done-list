@@ -49,8 +49,8 @@
   --field: #F8F8F6;
   --rev: #2F64C8;         /* 改稿 */
   --rev-soft: #EAF0FB;
-  --prog: #7A4FC9;        /* 进行中 */
-  --prog-soft: #F2ECFB;
+  --prog: #C2372F;        /* 进行中：红色 */
+  --prog-soft: #FBE9E7;
   --ok: #1E8A4C;
   --ok-soft: #E3F3E9;
   --warn: #B4570B;
@@ -472,7 +472,11 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
 .kpis .kpi:first-child span { color: rgba(255, 255, 255, .62); }
 .kpis .kpi:first-child b { color: var(--hl); }
 .ongoing { background: rgba(255, 255, 255, .55); border: 1px solid var(--edge); border-radius: var(--r); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
-.ongoing h3 { color: var(--ink); }
+.ongoing h3 { color: var(--prog); }
+.ongoing .og-item { background: #FDF1EF; border-color: #F3C9C4; box-shadow: inset 4px 0 0 var(--prog); }
+.ongoing .og-top b { color: var(--prog); }
+.ongoing .og-top .meta { color: #A0524B; }
+.ongoing .og-btns .plainbtn { border-color: #F3C9C4; }
 .avatar { background: var(--hl); box-shadow: none; }
 
 /* controls */
