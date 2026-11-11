@@ -1494,6 +1494,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const form = { fCase: $("fCase").value, fMarketer: $("fMarketer").value, fLink: $("fLink").value, fNote: $("fNote").value, fWhat: $("fWhat").value, fQty: $("fQty").value, fTypeOther: $("fTypeOther").value, noLink: $("fNoLink").checked, revCase: state.revCase, mode: state.mode };
     const clearForm = () => {
       $("fCase").value = ""; $("fLink").value = ""; $("fNote").value = ""; $("fWhat").value = ""; $("fQty").value = 1; $("fTypeOther").value = ""; $("fNoLink").checked = false;
+      if (!doc.videoId && doc.type === "AI Video") state.vd.data = {};   // the server may have linked a job by client + designer
       if (doc.videoId) { const v = (state.vd.open || []).find((x) => x.id === doc.videoId); if (v) { v.status = col === "addCase" ? "done" : "progress"; if (v.status === "done") state.vd.open = state.vd.open.filter((x) => x !== v); } $("fVideo").value = ""; renderVidPick(); state.vd.data = {}; }
       if (col === "addRev") { state.revCase = null; $("revSearch").value = ""; renderRevList(); }
       checkDup();
@@ -1770,6 +1771,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       try {
         const r = await call("edit", { kind, id: x.id, fields });
         putMonth(r); if (r.oldMonth && r.oldMonth !== r.month) watchMonth(r.oldMonth, true);
+        if (kind === "cases" && "link" in fields && state.vd) state.vd.data = {};
         state.editing = ""; if (og) state.ogOpen = ""; renderAll();
       } catch (e) { st.textContent = errMsg(e); st.className = "status bad"; save.disabled = false; }
     });
