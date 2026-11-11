@@ -312,6 +312,8 @@ button.slot-cell:hover { background: var(--upt-soft); }
 .spill.lv { background: var(--panel); color: var(--rev); }
 .spill.hol { background: var(--panel); color: var(--upt-text); }
 .spill.open { background: var(--ok-soft); color: var(--ok); }
+.slotgrid td.gone { background: #ECEBE6 !important; }
+.spill.gone { background: #DAD8D1; color: #7A786F; }
 .spill.ask { background: var(--warn-soft); color: var(--warn); }
 .sline { font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
 .sline i { font-style: normal; color: var(--muted); }
@@ -1032,7 +1034,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     <div class="sec-head" style="margin-bottom:0"><h2>Slot</h2></div>
     <p class="readonly" id="slotHint" style="margin:0">点你自己那一行的格子，就能记那天被谁 book 了什么、标 FULL 或请假。</p>
     <div class="slotbar">
-      <div class="cal-legend" style="margin:0"><span class="spill full">FULL</span><span class="spill open">有空位</span><span class="spill ask">先询问</span><span class="spill lv">请假</span><span class="spill hol" style="background:var(--upt-soft)">全组假期</span><span class="help" id="slotLoad"></span></div>
+      <div class="cal-legend" style="margin:0"><span class="spill full">FULL</span><span class="spill open">有空位</span><span class="spill ask">先询问</span><span class="spill lv">请假</span><span class="spill gone">已离职</span><span class="spill hol" style="background:var(--upt-soft)">全组假期</span><span class="help" id="slotLoad"></span></div>
       <div class="slotnav">
         <button type="button" id="wkPrev">‹ 上一周</button>
         <b id="wkLabel">—</b>
@@ -1139,7 +1141,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     <div class="panel admin">
       <div class="sec-head"><h2>成员与专属链接</h2><span class="hint">只有管理员看得到这一页</span></div>
       <p class="readonly" style="margin:0 0 14px">按「寄专属链接」会用你的 Gmail 寄一封信给那个人，信里是他自己的登记链接。要加人、停用或换 email，请改资料表的 People 分页。</p>
-      <div class="scroll"><table class="list"><thead><tr><th>名字</th><th>Email</th><th>身份</th><th></th></tr></thead><tbody id="teamBody"></tbody></table></div>
+      <div class="scroll"><table class="list"><thead><tr><th>名字</th><th>Email</th><th>身份</th><th>离职日期</th><th></th></tr></thead><tbody id="teamBody"></tbody></table></div>
     </div>
     <div class="panel">
       <div class="sec-head"><h2>给 Marketer 的 Slot 链接</h2><span class="hint">所有 marketer 共用，只能看 Slot，不能改</span></div>
@@ -1672,8 +1674,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   $("dayToday").addEventListener("click", () => setDay(today()));
   $("dayPick").addEventListener("change", () => { if (/^\d{4}-\d{2}-\d{2}$/.test($("dayPick").value)) setDay($("dayPick").value); });
 
-  function names() {
-    const list = state.designers.slice();
+  function names(day) {
+    const list = state.designers.filter((n) => !day || !isGone(n, day));
     allCases().concat(allRevs()).forEach((c) => { if (c.designer && !list.includes(c.designer)) list.push(c.designer); });
     return list;
   }
@@ -1802,7 +1804,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const board = $("board"); board.textContent = "";
     const dd = dayData(d);
     if (!dd.loaded) { board.appendChild(el("div", { class: "empty" }, db ? "载入中…" : "登录 Claude 后才看得到大家的登记。")); return; }
-    const list = names();
+    const list = names(d);
     if (!list.length) { board.appendChild(el("div", { class: "empty" }, "名单还没设定")); return; }
     const weekend = isWeekend(d);
     const off = offOn(d);
@@ -1925,6 +1927,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const lv = sd.cal.find((x) => x.date === date && x.kind === "leave" && x.who === name);
     return { row, hol, leave: row.status === "leave" || !!lv };
   }
+  const isGone = (name, date) => !!(state.leftFrom || {})[name] && date >= state.leftFrom[name];
   const canEditSlot = (name) => !state.viewer && db && (name === state.me || canManage());
   function renderSlots() {
     const days = weekDays();
@@ -1948,11 +1951,12 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       wrap.appendChild(nm); th.appendChild(wrap);
       tr.appendChild(th);
       days.forEach((d) => {
-        const o = slotOf(name, d);
-        const td = el("td", { class: o.hol ? "hol" : o.leave ? "lv" : "" });
-        const editable = canEditSlot(name);
+        const o = slotOf(name, d), gone = isGone(name, d);
+        const td = el("td", { class: gone ? "gone" : o.hol ? "hol" : o.leave ? "lv" : "" });
+        const editable = !gone && canEditSlot(name);
         const cell = el(editable ? "button" : "div", { class: "slot-cell" + (state.slotSel && state.slotSel.name === name && state.slotSel.date === d ? " sel" : "") });
         if (editable) { cell.type = "button"; cell.setAttribute("aria-label", "编辑 " + name + " " + d); cell.addEventListener("click", () => { state.slotSel = { name, date: d }; renderSlots(); renderSlotEdit(); try { $("slotEdit").scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {} }); }
+        if (gone) { cell.appendChild(el("span", { class: "spill gone" }, "已离职")); td.appendChild(cell); tr.appendChild(td); return; }
         if (o.hol) cell.appendChild(el("span", { class: "spill hol" }, "假期" + (o.hol.label && o.hol.label !== "假期" ? " · " + o.hol.label : "")));
         else if (o.leave) cell.appendChild(el("span", { class: "spill lv" }, "请假"));
         else if (o.row.status === "full") cell.appendChild(el("span", { class: "spill full" }, "FULL"));
@@ -3042,9 +3046,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   $("teamExit").addEventListener("click", () => setTeamView(false));
   async function loadTeam() {
     const body = $("teamBody"); body.textContent = "";
-    body.appendChild(el("tr", null)).appendChild(el("td", { colspan: "4", class: "empty" }, "载入中…"));
+    body.appendChild(el("tr", null)).appendChild(el("td", { colspan: "5", class: "empty" }, "载入中…"));
     let list = [];
-    try { list = await call("people"); } catch (e) { body.textContent = ""; body.appendChild(el("tr", null)).appendChild(el("td", { colspan: "4", class: "empty" }, errMsg(e))); return; }
+    try { list = await call("people"); } catch (e) { body.textContent = ""; body.appendChild(el("tr", null)).appendChild(el("td", { colspan: "5", class: "empty" }, errMsg(e))); return; }
     body.textContent = "";
     list.forEach((p) => {
       const tr = el("tr");
@@ -3053,6 +3057,14 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       nameTd.appendChild(nw); tr.appendChild(nameTd);
       tr.appendChild(el("td", { class: "note" }, p.email || "—"));
       tr.appendChild(el("td", null, !p.active ? "已停用" : p.role === "admin" ? "管理员" : "设计师"));
+      const lt = el("td"), li = el("input", { type: "date", "aria-label": p.name + " 离职日期", title: "从这天开始 Slot 变灰、不算有空位" }), ls = el("div", { class: "status" });
+      li.value = /^\d{4}-\d{2}-\d{2}$/.test(p.leftFrom || "") ? p.leftFrom : "";
+      li.addEventListener("change", async () => {
+        ls.textContent = "保存中…"; ls.className = "status";
+        try { await call("setLeft", { name: p.name, from: li.value }); if (li.value) state.leftFrom[p.name] = li.value; else delete state.leftFrom[p.name]; ls.textContent = li.value ? "已存好" : "已清除"; ls.className = "status ok"; }
+        catch (e) { ls.textContent = errMsg(e); ls.className = "status bad"; }
+      });
+      lt.appendChild(li); lt.appendChild(ls); tr.appendChild(lt);
       const td = el("td");
       if (p.active && p.email) {
         const b = el("button", { type: "button", class: "plainbtn", "data-name": p.name }, "寄专属链接");
@@ -3121,7 +3133,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   renderAll();
   setView(location.hash.slice(1), true);
   function applyBoot(d) {
-    state.me = d.me.name; state.admin = !!d.me.admin; state.viewer = !!d.me.viewer; state.skills = d.skills || {}; state.askFirst = d.askFirst || []; state.outsideList = d.outsourceDesigners || [];
+    state.me = d.me.name; state.admin = !!d.me.admin; state.viewer = !!d.me.viewer; state.skills = d.skills || {}; state.askFirst = d.askFirst || []; state.leftFrom = d.leftFrom || {}; state.outsideList = d.outsourceDesigners || [];
     if (d.marketerUrl) $("mkUrl").value = d.marketerUrl;
     state.avatars = d.avatars || {};
     if (state.viewer) {
