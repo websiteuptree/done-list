@@ -645,6 +645,9 @@ html.ready .boot-load { display: none; }
 @media (hover: none) { .vd-ed { opacity: 1; } }
 .vd-desbtn { border: 1px solid transparent; background: none; border-radius: 8px; padding: 4px 6px; margin: 0 -6px; text-align: left; cursor: pointer; }
 .vd-desbtn:hover { border-color: #E3E0D6; background: rgba(255, 255, 255, .7); }
+.vdlist tbody td:has(.vd-pop) { overflow: visible; position: relative; z-index: 5; }
+.vd-ed.add { opacity: 1; font-size: 12.5px; font-weight: 600; color: #9A988F; border: 1px dashed #D9D6CC; border-radius: 999px; padding: 4px 10px; margin: 0; }
+.vd-ed.add:hover { color: var(--ink); border-color: var(--ink); background: none; }
 .vd-pop { position: absolute; z-index: 20; top: calc(100% - 4px); left: 0; min-width: 260px; max-width: 360px; background: #fff; border: 1px solid #E3E0D6; border-radius: 14px; box-shadow: 0 14px 34px rgba(0, 0, 0, .14); padding: 12px; display: flex; flex-direction: column; gap: 8px; white-space: normal; }
 .vd-pop input { background: #F3F2EC; padding: 8px 10px; font-size: 13.5px; }
 .vd-pop .save { align-self: flex-start; background: var(--ink); color: #fff; border: none; border-radius: 999px; padding: 7px 18px; font-weight: 700; }
@@ -2616,25 +2619,29 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   }
   function vdLinkCell(v, urlKey, textKey, fallback) {
     const td = el("td", { class: "vd-linkcell" });
+    const empty = !safeUrl(v[urlKey]) && !String(v[textKey] || "").trim();
     td.appendChild(vdChip(v[urlKey], v[textKey], fallback));
-    const ed = el("button", { type: "button", class: "vd-ed", title: "改" + (fallback === "Script" ? " Content" : "链接"), "aria-label": "编辑" }, "✎");
+    const ed = el("button", { type: "button", class: "vd-ed" + (empty ? " add" : ""), title: (empty ? "加" : "改") + (fallback === "Script" ? " Content" : "链接"), "aria-label": "编辑" }, empty ? "＋ 贴链接" : "✎");
+    if (empty) td.firstChild.remove();
     ed.addEventListener("click", (e) => {
       e.stopPropagation();
       vdPop(td, (pop) => {
-        const n = el("input", { type: "text", maxlength: "200", placeholder: fallback === "Script" ? "Content（例如 ASPEN VERSA VIDEO IDEA 1）" : "名字（例如 1. 071126 - 成片）" }); n.value = v[textKey] || "";
-        const u = el("input", { type: "url", placeholder: "https:// 链接" }); u.value = v[urlKey] || "";
+        const u = el("input", { type: "url", placeholder: "贴上链接 https://…", "aria-label": "链接" }); u.value = v[urlKey] || "";
+        const n = el("input", { type: "text", maxlength: "200", "aria-label": "显示名字", placeholder: fallback === "Script" ? "Content 名字（选填，留空就用 Drive 文件名）" : "显示名字（选填，留空就用 Drive 文件名）" }); n.value = v[textKey] || "";
         const st = el("span", { class: "status" });
         const ok = el("button", { type: "button", class: "save" }, "保存");
         ok.addEventListener("click", () => {
           if (u.value.trim() && !safeUrl(u.value.trim())) { st.textContent = "链接要用 https:// 开头。"; st.className = "status bad"; return; }
           const f = { [textKey]: n.value.trim(), [urlKey]: u.value.trim() };
           vdPopOpen = null; td.querySelector(".vd-pop").remove();
-          td.replaceChild(vdChip(f[urlKey], f[textKey], fallback), td.firstChild);
-          vdSave(v, f, td);
+          const chip = vdChip(f[urlKey], f[textKey] || (f[urlKey] ? "读取名字…" : ""), fallback);
+          if (td.firstChild && td.firstChild.classList && td.firstChild.classList.contains("vd-ed")) td.insertBefore(chip, td.firstChild); else td.replaceChild(chip, td.firstChild);
+          vdSave(v, f, td).then(() => renderVideos());   // re-draw so the Drive file name shows
         });
-        pop.appendChild(n); pop.appendChild(u);
+        [u, n].forEach((i) => i.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); ok.click(); } if (e.key === "Escape") vdClosePop(); }));
+        pop.appendChild(u); pop.appendChild(n);
         const row = el("div", { class: "row2" }); row.appendChild(ok); row.appendChild(st); pop.appendChild(row);
-        setTimeout(() => n.focus(), 0);
+        setTimeout(() => (u.value ? n : u).focus(), 0);
       });
     });
     td.appendChild(ed);
