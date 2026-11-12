@@ -1938,7 +1938,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const days = weekDays();
     $("wkSync").hidden = !canManage();
     $("wkLabel").textContent = shortDay(days[0]).replace(/（.）/, "") + " – " + shortDay(days[4]).replace(/（.）/, "");
-    $("slotHint").textContent = state.viewer ? "这是设计组这一周的 Slot：标 FULL 的那天就排不进了，有空位的可以找设计师 book。" : "Slot 跟「Designer Slot 2026」表格同步（每 5 分钟），表格里有的日子请改表格；表格还没排到的日子可以在这里点格子编辑。";
+    $("slotHint").textContent = state.viewer ? "这是设计组这一周的 Slot：标 FULL 的那天就排不进了，有空位的可以找设计师 book。" : "点格子就能改 Slot。在这里改会同时写进「Designer Slot 2026」表格；直接改表格的话，大约 10 分钟内这里也会跟着更新。";
     const tbl = $("slotGrid"); tbl.textContent = "";
     const thead = el("thead"), hr = el("tr");
     hr.appendChild(el("th", { class: "who" }, "设计师"));
@@ -1991,7 +1991,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     head.appendChild(el("h2", null, sel.name + " · " + shortDay(sel.date)));
     head.appendChild(el("span", { class: "hint" }, o.hol ? "这天是全组假期" : ""));
     box.appendChild(head);
-    const fromSheet = ((state.slot && state.slot.sheetDates) || []).includes(sel.date);
+    const fromSheet = false;   // every day is edited here now; saving writes the same cell into the sheet
     if (fromSheet) {
       const url = (state.slot && state.slot.sheetUrl) || state.slotSheetUrl || "";
       const msg = el("p", { class: "readonly", style: "margin:0 0 12px" }, "这天在「Designer Slot 2026」表格里，资料以表格为准：请到表格改这一格，大约 5 分钟后这里会跟着更新。");
@@ -2048,7 +2048,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       try {
         const d = await call("slotSave", { date: sel.date, designer: sel.name, status, items: clean, note: note.value.trim(), weekStart: state.week, until: u });
         cacheWeeks(d); state.slot = state.slotCache[state.week];
-        st.textContent = d.saved > 1 ? "已保存 " + d.saved + " 天（到 " + shortDay(d.lastDay) + "）" : "已保存"; st.className = "status ok"; renderSlots();
+        const sh = d.sheet || {}, miss = (sh.missing || []).length;
+        st.textContent = (d.saved > 1 ? "已保存 " + d.saved + " 天（到 " + shortDay(d.lastDay) + "）" : "已保存") + (sh.error ? "，但表格没写进去：" + sh.error : miss ? "，表格里还没有 " + sh.missing.map(shortDay).join("、") + " 这格，只存在这里" : "，表格也更新了");
+        st.className = "status " + (sh.error ? "bad" : "ok"); renderSlots();
         [...new Set([sel.date.slice(0, 7), (d.lastDay || sel.date).slice(0, 7)])].forEach((m) => watchMonth(m, true));
       } catch (e) { st.textContent = errMsg(e); st.className = "status bad"; }
       finally { save.disabled = false; }
