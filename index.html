@@ -197,6 +197,7 @@ main.in { padding-block: 24px 72px; display: flex; flex-direction: column; gap: 
 .mode button[aria-pressed="true"].prog b { color: var(--prog); }
 .submit.prog { background: var(--prog); color: #fff; }
 .items li.p .tag { background: var(--prog-soft); color: var(--prog); }
+.items li.p.past .tag { background: #EFEEE9; color: #8A877E; }
 .ongoing { border: 2px solid var(--prog); background: var(--prog-soft); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
 .ongoing h3 { font-size: 15.5px; }
 .og-item { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
@@ -1787,9 +1788,12 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     f.appendChild(acts);
     return f;
   }
+  // A progress note whose case has since been finished is just a record of the work: grey 「过程」, not 「进行中」.
+  const caseOpen = (id) => (state.ongoing || []).some((c) => c.id === id);
   function progLi(x) {
-    const li = el("li", { class: "p" });
-    li.appendChild(el("span", { class: "tag" }, "进行中"));
+    const open = x.pending || caseOpen(x.caseId);
+    const li = el("li", { class: "p" + (open ? "" : " past") });
+    li.appendChild(el("span", { class: "tag", title: open ? "还在做" : "这个 case 已经完成，这条是当时的进度记录" }, open ? "进行中" : "过程"));
     const txt = el("span", { class: "txt" });
     const u = safeUrl(x.link);
     if (u) txt.appendChild(el("a", { href: u, target: "_blank", rel: "noopener" }, x.client || "未填")); else txt.appendChild(el("b", null, x.client || "未填"));
@@ -1829,7 +1833,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       const who = el("div", { class: "who" });
       who.appendChild(el("b", null, n));
       const last = cs.concat(rs, ps).map((x) => x.createdAt || "").sort().pop();
-      who.appendChild(el("span", null, has ? [rs.length ? rs.length + " 个改稿" : "", ps.length ? ps.length + " 个进行中" : "", last ? "最后提交 " + timeOf(last) : ""].filter(Boolean).join(" · ") : (n === state.me ? "这是你" : "")));
+      who.appendChild(el("span", null, has ? [rs.length ? rs.length + " 个改稿" : "", (() => { const k = new Set(ps.filter((r) => r.pending || caseOpen(r.caseId)).map((r) => r.caseId)).size; return k ? k + " 个进行中" : ""; })(), last ? "最后提交 " + timeOf(last) : ""].filter(Boolean).join(" · ") : (n === state.me ? "这是你" : "")));
       head.appendChild(who);
       if (has) { const big = el("div", { class: "big num" }, String(cs.reduce((s, c) => s + qtyOf(c), 0))); big.appendChild(el("small", null, "case")); head.appendChild(big); }
       card.appendChild(head);
