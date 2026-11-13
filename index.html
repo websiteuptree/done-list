@@ -318,6 +318,14 @@ button.slot-cell:hover { background: var(--upt-soft); }
 .spill.ask { background: var(--warn-soft); color: var(--warn); }
 .sline { font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
 .sline i { font-style: normal; color: var(--muted); }
+.sline.empty { align-self: flex-start; color: var(--muted); border: 1px dashed #C9C5BA; border-radius: 6px; padding: 0 8px; min-width: 64px; }
+.cap-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 0 0 12px; }
+.cap-row .cap { display: inline-flex; align-items: center; gap: 6px; }
+.cap-row .cap b { font-size: 15px; }
+.cap-row .cap-b { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--edge); background: #fff; font-size: 18px; line-height: 1; cursor: pointer; }
+.cap-row .cap-b:hover { border-color: var(--upt); }
+.cap-row .cap-n { min-width: 18px; text-align: center; font-weight: 800; font-size: 16px; }
+.slot-edit .bk.open input[aria-label='Marketer'] { border-style: dashed; }
 .slot-edit { border-top: 4px solid var(--upt); }
 .slot-edit .bk { display: grid; grid-template-columns: 130px 1fr 1fr auto; gap: 8px; align-items: center; }
 @media (max-width: 640px) { .slot-edit .bk { grid-template-columns: 1fr 1fr; } }
@@ -1944,7 +1952,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const days = weekDays();
     $("wkSync").hidden = !canManage();
     $("wkLabel").textContent = shortDay(days[0]).replace(/（.）/, "") + " – " + shortDay(days[4]).replace(/（.）/, "");
-    $("slotHint").textContent = state.viewer ? "这是设计组这一周的 Slot：标 FULL 的那天就排不进了，有空位的可以找设计师 book。" : "点格子就能改 Slot。在这里改会同时写进「Designer Slot 2026」表格；直接改表格的话，大约 10 分钟内这里也会跟着更新。";
+    $("slotHint").textContent = state.viewer ? "这是设计组这一周的 Slot：虚线的「单 - / 多 -」是设计师当天还空着的格子，要 book 请找设计师；标 FULL 的那天就排不进了。" : "点格子就能改 Slot。在这里改会同时写进「Designer Slot 2026」表格；直接改表格的话，大约 10 分钟内这里也会跟着更新。";
     const tbl = $("slotGrid"); tbl.textContent = "";
     const thead = el("thead"), hr = el("tr");
     hr.appendChild(el("th", { class: "who" }, "设计师"));
@@ -1972,8 +1980,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         else if (o.leave) cell.appendChild(el("span", { class: "spill lv" }, "请假"));
         else if (o.row.status === "full") cell.appendChild(el("span", { class: "spill full" }, "FULL"));
         else if ((state.askFirst || []).includes(name)) cell.appendChild(el("span", { class: "spill ask" }, "先询问"));
-        else cell.appendChild(el("span", { class: "spill open" }, "有空位"));
+        else { const left = (o.row.items || []).filter(isOpenSlot).length; cell.appendChild(el("span", { class: "spill open" }, left ? "还剩 " + left + " 格" : "有空位")); }
         (o.row.items || []).forEach((it) => {
+          if (isOpenSlot(it)) { cell.appendChild(el("span", { class: "sline empty" }, it.type + " -")); return; }
           const line = el("span", { class: "sline" }, it.type + (it.marketer ? " - " + it.marketer : ""));
           if (it.note && norm(it.note) !== norm(it.type)) line.appendChild(el("i", null, " · " + it.note));
           cell.appendChild(line);
@@ -1985,6 +1994,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     });
     tbl.appendChild(tb);
   }
+  const isOpenSlot = (x) => (x.type === "单" || x.type === "多") && !(x.marketer || "").trim() && !(x.note || "").trim();
   function renderSlotEdit() {
     const box = $("slotEdit"); box.textContent = "";
     const sel = state.slotSel;
@@ -2012,9 +2022,10 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const stRow = el("div", { class: "chips", style: "margin-bottom:14px" });
     [["", (state.askFirst || []).includes(sel.name) ? "先询问" : "有空位"], ["full", "FULL"], ["leave", "请假"]].forEach(([v, label]) => {
       const b = el("button", { type: "button", class: "chip", "aria-pressed": String(status === v) }, label);
-      b.addEventListener("click", () => { status = v; [...stRow.children].forEach((c, i) => c.setAttribute("aria-pressed", String(["", "full", "leave"][i] === v))); });
+      b.addEventListener("click", () => { status = v; paintStatus(); });
       stRow.appendChild(b);
     });
+    const paintStatus = () => { [...stRow.children].forEach((c, i) => c.setAttribute("aria-pressed", String(["", "full", "leave"][i] === status))); capHint(); };
     box.appendChild(stRow);
     const multi = el("div", { class: "row2", style: "margin:-4px 0 14px;align-items:center;gap:8px" });
     multi.appendChild(el("span", { class: "help" }, "连续几天一样（例如 AI Video）：一直到"));
@@ -2022,20 +2033,56 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     multi.appendChild(until);
     multi.appendChild(el("span", { class: "help" }, "选填 · 周末和全组假期会跳过"));
     box.appendChild(multi);
+    // How many 多 / 单 the designer takes today: each one is a line; an empty line is a slot still open.
+    const capRow = el("div", { class: "cap-row" });
+    capRow.appendChild(el("span", { class: "help" }, "今天开几格："));
+    const capN = {};
+    const capMsg = el("span", { class: "help" });
+    ["多", "单"].forEach((t) => {
+      const g = el("span", { class: "cap" });
+      const minus = el("button", { type: "button", class: "cap-b", "aria-label": "少开一格" + t }, "−");
+      const n = el("span", { class: "cap-n num" }); capN[t] = n;
+      const plus = el("button", { type: "button", class: "cap-b", "aria-label": "多开一格" + t }, "+");
+      minus.addEventListener("click", () => {
+        let i = -1; items.forEach((x, k) => { if (x.type === t && isOpenSlot(x)) i = k; });
+        if (i < 0) { capMsg.textContent = items.some((x) => x.type === t) ? "「" + t + "」都已经有人了，要拿掉请按那一行的「移除」。" : ""; return; }
+        items.splice(i, 1); draw();
+      });
+      plus.addEventListener("click", () => {
+        let last = -1; items.forEach((x, k) => { if (x.type === t) last = k; });
+        if (last < 0 && t === "单") items.forEach((x, k) => { if (x.type === "多") last = k; });
+        const at = last >= 0 ? last + 1 : t === "多" ? 0 : items.length;
+        items.splice(at, 0, { type: t, marketer: "", note: "" });
+        if (status === "full") status = "";
+        draw(); paintStatus();
+      });
+      g.appendChild(el("b", null, t)); g.appendChild(minus); g.appendChild(n); g.appendChild(plus);
+      capRow.appendChild(g);
+    });
+    capRow.appendChild(capMsg);
+    box.appendChild(capRow);
+    const capInfo = el("div", { class: "help", style: "margin:-4px 0 10px" });
+    box.appendChild(capInfo);
+    function capHint() {
+      ["多", "单"].forEach((t) => { capN[t].textContent = String(items.filter((x) => x.type === t).length); });
+      const lines = items.filter((x) => x.type === "单" || x.type === "多"), open = lines.filter(isOpenSlot).length;
+      capInfo.textContent = status === "leave" ? "" : !lines.length ? "按 + 开今天要接的格子，例如难的 case 只开 1 多 2 单；空格会给 marketer 看到。" : open ? "还空 " + open + " 格：填上 marketer 名字就算 book 了。" : status === "full" ? "" : "格子都填满了，保存后会自动标 FULL。";
+    }
     box.appendChild(el("div", { class: "help", style: "margin-bottom:8px" }, "这天被谁 book 了什么"));
     const list = el("div", { style: "display:flex;flex-direction:column;gap:8px" });
     const draw = () => {
-      list.textContent = "";
+      list.textContent = ""; capMsg.textContent = "";
       items.forEach((it, idx) => {
-        const r = el("div", { class: "bk" });
+        const r = el("div", { class: "bk" + (isOpenSlot(it) ? " open" : "") });
         const ty = el("select", { "aria-label": "类型" });
         SLOT_TYPES.concat(SLOT_TYPES.includes(it.type) ? [] : [it.type]).forEach((t) => ty.appendChild(el("option", { value: t }, t)));
-        ty.value = it.type || "单"; ty.addEventListener("change", () => { it.type = ty.value; });
-        const mk = el("input", { type: "text", placeholder: "Marketer", maxlength: "40", "aria-label": "Marketer" }); mk.value = it.marketer || ""; mk.addEventListener("input", () => { it.marketer = mk.value; });
-        const nt = el("input", { type: "text", placeholder: "Case / 备注（选填）", maxlength: "60", "aria-label": "备注" }); nt.value = it.note || ""; nt.addEventListener("input", () => { it.note = nt.value; });
+        ty.value = it.type || "单"; ty.addEventListener("change", () => { it.type = ty.value; capHint(); });
+        const mk = el("input", { type: "text", placeholder: isOpenSlot(it) ? "空格 · 还没人 book" : "Marketer", maxlength: "40", "aria-label": "Marketer" }); mk.value = it.marketer || ""; mk.addEventListener("input", () => { it.marketer = mk.value; r.classList.toggle("open", isOpenSlot(it)); capHint(); });
+        const nt = el("input", { type: "text", placeholder: "Case / 备注（选填）", maxlength: "60", "aria-label": "备注" }); nt.value = it.note || ""; nt.addEventListener("input", () => { it.note = nt.value; r.classList.toggle("open", isOpenSlot(it)); capHint(); });
         const rm = el("button", { type: "button", class: "undo" }, "移除"); rm.addEventListener("click", () => { items.splice(idx, 1); draw(); });
         r.appendChild(ty); r.appendChild(mk); r.appendChild(nt); r.appendChild(rm); list.appendChild(r);
       });
+      capHint();
     };
     draw(); box.appendChild(list);
     const add = el("button", { type: "button", class: "plainbtn", style: "margin-top:8px;align-self:flex-start" }, "+ 加一笔");
@@ -2049,7 +2096,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const st = el("span", { class: "status" });
     save.addEventListener("click", async () => {
       save.disabled = true; st.textContent = "保存中…"; st.className = "status";
-      const clean = items.map((x) => ({ type: x.type, marketer: canon((x.marketer || "").trim(), state.marketers, state.aliases), note: (x.note || "").trim() })).filter((x) => x.marketer || x.note);
+      const clean = items.map((x) => ({ type: x.type, marketer: (x.marketer || "").trim() ? canon((x.marketer || "").trim(), state.marketers, state.aliases) : "", note: (x.note || "").trim() })).filter((x) => x.marketer || x.note || x.type === "单" || x.type === "多");
       const u = until.value && until.value > sel.date ? until.value : "";
       try {
         const d = await call("slotSave", { date: sel.date, designer: sel.name, status, items: clean, note: note.value.trim(), weekStart: state.week, until: u });
@@ -2057,6 +2104,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         const sh = d.sheet || {}, miss = (sh.missing || []).length;
         st.textContent = (d.saved > 1 ? "已保存 " + d.saved + " 天（到 " + shortDay(d.lastDay) + "）" : "已保存") + (sh.error ? "，但表格没写进去：" + sh.error : miss ? "，表格里还没有 " + sh.missing.map(shortDay).join("、") + " 这格，只存在这里" : "，表格也更新了");
         st.className = "status " + (sh.error ? "bad" : "ok"); renderSlots();
+        const now = slotOf(sel.name, sel.date).row; if (now && now.status === "full" && status !== "full") { status = "full"; paintStatus(); st.textContent += " · 格子满了，已自动标 FULL"; }
         [...new Set([sel.date.slice(0, 7), (d.lastDay || sel.date).slice(0, 7)])].forEach((m) => watchMonth(m, true));
       } catch (e) { st.textContent = errMsg(e); st.className = "status bad"; }
       finally { save.disabled = false; }
