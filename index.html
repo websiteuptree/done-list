@@ -1060,9 +1060,11 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         <div class="step"><label class="lbl" for="oMarketer">Marketer</label><div class="ctl"><input type="text" id="oMarketer" maxlength="40" autocomplete="off" placeholder="你的名字"></div></div>
         <div class="step"><label class="lbl" for="oCase">Case Name</label><div class="ctl"><input type="text" id="oCase" maxlength="80" autocomplete="off" placeholder="例如：YIHETANG"></div></div>
         <div class="step"><div class="lbl">Design 类型</div><div class="ctl"><div class="chips" role="group" aria-label="Design 类型">
-          <button type="button" class="chip" id="oSingle" aria-pressed="true">单图</button>
-          <button type="button" class="chip" id="oMulti" aria-pressed="false">多图</button>
-          <button type="button" class="chip" id="oAB" aria-pressed="false">AB TEST</button>
+          <button type="button" class="chip otype" data-t="单图" aria-pressed="true">单图</button>
+          <button type="button" class="chip otype" data-t="单图 Language" aria-pressed="false">单图 Language</button>
+          <button type="button" class="chip otype" data-t="多图" aria-pressed="false">多图</button>
+          <button type="button" class="chip otype" data-t="多图 Language" aria-pressed="false">多图 Language</button>
+          <button type="button" class="chip otype" data-t="AB TEST" aria-pressed="false">AB TEST</button>
         </div></div></div>
         <div class="step"><label class="lbl" for="oQty">Task 数量</label><div class="ctl"><input type="number" id="oQty" min="1" max="20" value="1" style="width:90px"></div></div>
         <div class="step"><label class="lbl" for="oEnd">Client end date<small>选填 · 客户那边最后期限</small></label><div class="ctl"><input type="date" id="oEnd" class="date-in"></div></div>
@@ -2085,10 +2087,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     };
     mk($("oOutside"), state.outsideList || [], state.oOut, (n) => { state.oOut = n; });
   }
-  function setOType(t) { state.oType = t; $("oSingle").setAttribute("aria-pressed", String(t === "单图")); $("oMulti").setAttribute("aria-pressed", String(t === "多图")); $("oAB").setAttribute("aria-pressed", String(t === "AB TEST")); }
-  $("oSingle").addEventListener("click", () => setOType("单图"));
-  $("oMulti").addEventListener("click", () => setOType("多图"));
-  $("oAB").addEventListener("click", () => setOType("AB TEST"));
+  function setOType(t) { state.oType = t; document.querySelectorAll(".chip.otype").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.t === t))); }
+  document.querySelectorAll(".chip.otype").forEach((b) => b.addEventListener("click", () => setOType(b.dataset.t)));
   $("oDate").value = today();
   // Outsourcing is only allowed when every in-house designer is FULL / on leave that day (Jie Yi counts as FULL).
   let oCheckSeq = 0;
@@ -2130,7 +2130,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const byType = {}; rows.forEach((r) => { byType[r.type] = (byType[r.type] || 0) + nOf(r); });
     $("oListTitle").textContent = monthLabel(state.oMonth) + " Outsource 记录";
     const per = {}; rows.forEach((r) => { per[r.designer] = (per[r.designer] || 0) + nOf(r); });
-    $("oSummary").textContent = rows.length ? "共 " + rows.length + " 笔、" + rows.reduce((s, r) => s + nOf(r), 0) + " 个 task · " + ["单图", "多图", "AB TEST"].filter((t) => byType[t]).map((t) => t + " " + byType[t]).join(" · ") + " · " + Object.keys(per).map((k) => k + " " + per[k]).join(" · ") : "";
+    $("oSummary").textContent = rows.length ? "共 " + rows.length + " 笔、" + rows.reduce((s, r) => s + nOf(r), 0) + " 个 task · " + ["单图", "单图 Language", "多图", "多图 Language", "AB TEST"].filter((t) => byType[t]).map((t) => t + " " + byType[t]).join(" · ") + " · " + Object.keys(per).map((k) => k + " " + per[k]).join(" · ") : "";
     $("oEmpty").hidden = rows.length > 0;
     const body = $("oBody"); body.textContent = "";
     rows.forEach((r) => {
