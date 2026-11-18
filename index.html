@@ -663,6 +663,8 @@ html.ready .boot-load { display: none; }
 .vd-pop .save { align-self: flex-start; background: var(--ink); color: #fff; border: none; border-radius: 999px; padding: 7px 18px; font-weight: 700; }
 .vd-pop .chip { display: inline-flex; align-items: center; gap: 6px; }
 .vd-pop .chip .avatar.xs { margin: 0; }
+.og-vmeta { display: flex; flex-direction: column; gap: 6px; }
+.og-vmeta .chips { gap: 6px; }
 .vd-pop .fin-lbl { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 2px; }
 .vd-pop .fin-lbl b { color: var(--bad); }
 .vd-pop .chips { gap: 6px; }
@@ -943,6 +945,13 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
               <input type="number" id="fQty" min="1" max="99" value="1" class="num">
               <button type="button" id="qtyPlus" aria-label="加一">+</button>
             </div>
+          </div>
+        </div>
+        <div class="step" id="vmetaStep" hidden>
+          <label class="lbl" for="fVType">Video 类型 / 时长<small>AI Video 完成时必填</small></label>
+          <div class="ctl">
+            <div class="chips" id="fVTypeChips" style="margin-bottom:8px"></div>
+            <div class="row2"><input type="text" id="fVType" maxlength="40" list="vdTypeList" autocomplete="off" placeholder="Video 类型，例如 Sale"><input type="text" id="fVDur" maxlength="20" autocomplete="off" placeholder="时长，例如 1m05s"></div>
           </div>
         </div>
         <div class="step" id="whatStep" hidden>
@@ -1337,7 +1346,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
 
   /* ---------- mode ---------- */
   function setMode(m) {
-    setTimeout(renderVidPick, 0);
+    setTimeout(renderVidPick, 0); setTimeout(updVMeta, 0);
     state.mode = m;
     $("modeNew").setAttribute("aria-pressed", String(m === "new"));
     $("modeRev").setAttribute("aria-pressed", String(m === "rev"));
@@ -1395,7 +1404,24 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   $("revManual").addEventListener("click", () => { state.revManualOn = !state.revManualOn; state.revCase = null; setMode("rev"); });
 
   /* ---------- type chips ---------- */
+  function isAIV(t) { return /^ai ?video$/i.test(String(t || "")); }
+  function knownVTypes() {
+    const s = new Set(["Creative", "Sale", "Testimonial", "剧情+Sale", "探店"]);
+    const vd = state.vd || {};
+    Object.values(vd.data || {}).flat().concat(vd.open || []).forEach((x) => { if (x && x.videoType) s.add(x.videoType); });
+    return [...s];
+  }
+  function vTypeChips(box, input, next) {
+    box.textContent = "";
+    knownVTypes().slice(0, 8).forEach((t) => { const b = el("button", { type: "button", class: "chip small" }, t); b.addEventListener("click", () => { input.value = t; if (next) next.focus(); }); box.appendChild(b); });
+  }
+  function updVMeta() {
+    const show = state.mode === "new" && isAIV(state.type);
+    $("vmetaStep").hidden = !show;
+    if (show) vTypeChips($("fVTypeChips"), $("fVType"), $("fVDur"));
+  }
   function renderTypes() {
+    setTimeout(updVMeta, 0);
     const box = $("typeChips"); box.textContent = "";
     const list = state.types.includes(OTHER) ? state.types : state.types.concat(OTHER);
     if (!state.type || !list.includes(state.type)) state.type = list[0];
@@ -1484,8 +1510,10 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       let type = state.type;
       if (type === OTHER) { type = $("fTypeOther").value.trim().slice(0, 30) || OTHER; }
       const qty = clampQty($("fQty").value);
+      const vType = $("fVType").value.trim(), vDur = $("fVDur").value.trim();
+      if (isAIV(type) && (!vType || !vDur)) { setStatus("AI Video 完成要填 Video 类型和时长。", "bad"); (vType ? $("fVDur") : $("fVType")).focus(); return; }
       col = "addCase";
-      doc = Object.assign(base, { type, qty, link: link.slice(0, 500), note: $("fNote").value.trim().slice(0, 120), videoId: $("fVideo").value || "" });
+      doc = Object.assign(base, { type, qty, link: link.slice(0, 500), note: $("fNote").value.trim().slice(0, 120), videoId: $("fVideo").value || "" }, isAIV(type) ? { videoType: vType.slice(0, 40), duration: vDur.slice(0, 20) } : {});
       ok = "已提交：" + doc.client + " · " + type + " × " + qty;
     } else if (state.mode === "prog") {
       const what = $("fWhat").value.trim();
@@ -1506,9 +1534,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     // New cases and revisions show up at once and sync in the background; on failure they are taken back out
     // and the form is filled in again. Starting a multi-day case still waits for the server.
     const instant = col === "addCase" || col === "addRev";
-    const form = { fCase: $("fCase").value, fMarketer: $("fMarketer").value, fLink: $("fLink").value, fNote: $("fNote").value, fWhat: $("fWhat").value, fQty: $("fQty").value, fTypeOther: $("fTypeOther").value, noLink: $("fNoLink").checked, revCase: state.revCase, mode: state.mode };
+    const form = { fCase: $("fCase").value, fMarketer: $("fMarketer").value, fLink: $("fLink").value, fNote: $("fNote").value, fWhat: $("fWhat").value, fQty: $("fQty").value, fTypeOther: $("fTypeOther").value, fVType: $("fVType").value, fVDur: $("fVDur").value, noLink: $("fNoLink").checked, revCase: state.revCase, mode: state.mode };
     const clearForm = () => {
-      $("fCase").value = ""; $("fLink").value = ""; $("fNote").value = ""; $("fWhat").value = ""; $("fQty").value = 1; $("fTypeOther").value = ""; $("fNoLink").checked = false;
+      $("fCase").value = ""; $("fLink").value = ""; $("fNote").value = ""; $("fWhat").value = ""; $("fQty").value = 1; $("fTypeOther").value = ""; $("fNoLink").checked = false; $("fVType").value = ""; $("fVDur").value = "";
       if (!doc.videoId && doc.type === "AI Video") state.vd.data = {};   // the server may have linked a job by client + designer
       if (doc.videoId) { const v = (state.vd.open || []).find((x) => x.id === doc.videoId); if (v) { v.status = col === "addCase" ? "done" : "progress"; if (v.status === "done") state.vd.open = state.vd.open.filter((x) => x !== v); } $("fVideo").value = ""; renderVidPick(); state.vd.data = {}; }
       if (col === "addRev") { state.revCase = null; $("revSearch").value = ""; renderRevList(); }
@@ -1533,7 +1561,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       if (pend) {
         dropPending(pend); renderAll();
         if (form.mode === "rev") setMode("rev");
-        ["fCase", "fMarketer", "fLink", "fNote", "fWhat", "fQty", "fTypeOther"].forEach((k) => { $(k).value = form[k]; });
+        ["fCase", "fMarketer", "fLink", "fNote", "fWhat", "fQty", "fTypeOther", "fVType", "fVDur"].forEach((k) => { $(k).value = form[k]; });
         $("fNoLink").checked = form.noLink; state.revCase = form.revCase; renderRevList(); checkDup();
         const em = errMsg(err);
         setStatus(/再按一次/.test(em) ? "没存到，内容已经放回表格，请再按一次提交。" : "没存到：" + em + " 内容已经放回表格。", "bad");
@@ -1614,17 +1642,30 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         const q = el("input", { type: "number", min: "1", max: "99", value: String(qtyOf(c)), style: "width:80px", "aria-label": "Case QTT" });
         qwrap.appendChild(q);
         const note = el("input", { type: "text", maxlength: "120", placeholder: "Remarks（选填）", "aria-label": "Remarks" });
+        let vt = null, vdur = null, vbox = null;
+        if (isAIV(c.type)) {   // AI Video: type + length are required when it is finished
+          const job = ((state.vd && state.vd.open) || []).find((x) => x.caseId === c.id) || {};
+          vbox = el("div", { class: "og-vmeta" });
+          vbox.appendChild(el("span", { class: "help" }, "Video 类型 / 时长（必填）"));
+          const cs = el("div", { class: "chips" }); vbox.appendChild(cs);
+          const r2 = el("div", { class: "row2" });
+          vt = el("input", { type: "text", maxlength: "40", list: "vdTypeList", placeholder: "Video 类型，例如 Sale", "aria-label": "Video 类型" }); vt.value = c.videoType || job.videoType || "";
+          vdur = el("input", { type: "text", maxlength: "20", placeholder: "时长，例如 1m05s", "aria-label": "时长" }); vdur.value = c.duration || job.duration || "";
+          r2.appendChild(vt); r2.appendChild(vdur); vbox.appendChild(r2);
+          vTypeChips(cs, vt, vdur);
+        }
         const go = el("button", { type: "button", class: "submit" }, "完成，算进 " + state.date.slice(5).replace("-", "/"));
         go.addEventListener("click", async () => {
           const u = link.value.trim();
           if (u && !safeUrl(u)) { st.textContent = "链接要用 https:// 开头，整段贴进来。"; st.className = "status bad"; return; }
           if (!u && !note.value.trim()) { st.textContent = "请贴 Final Design 链接；没有链接就在 Remarks 写清楚。"; st.className = "status bad"; return; }
+          if (vt && (!vt.value.trim() || !vdur.value.trim())) { st.textContent = "AI Video 完成要填 Video 类型和时长。"; st.className = "status bad"; (vt.value.trim() ? vdur : vt).focus(); return; }
           go.disabled = true;
-          try { putMonth(await call("finish", { caseId: c.id, date: state.date, link: u, qty: clampQty(q.value), note: note.value.trim() })); state.ogOpen = ""; setStatus("已完成：" + c.client + " · " + c.type + " × " + clampQty(q.value), "ok"); renderAll(); if (state.day !== state.date) setDay(state.date); }
+          try { putMonth(await call("finish", Object.assign({ caseId: c.id, date: state.date, link: u, qty: clampQty(q.value), note: note.value.trim() }, vt ? { videoType: vt.value.trim(), duration: vdur.value.trim() } : {}))); if (vt && state.vd) state.vd.data = {}; state.ogOpen = ""; setStatus("已完成：" + c.client + " · " + c.type + " × " + clampQty(q.value), "ok"); renderAll(); if (state.day !== state.date) setDay(state.date); }
           catch (e) { st.textContent = errMsg(e); st.className = "status bad"; go.disabled = false; }
         });
         f.appendChild(el("span", { class: "help" }, "完成日期是 " + state.date + "，这个 case 会算在这一天。"));
-        f.appendChild(row); f.appendChild(qwrap); f.appendChild(note); f.appendChild(go); f.appendChild(st); item.appendChild(f);
+        f.appendChild(row); f.appendChild(qwrap); if (vbox) f.appendChild(vbox); f.appendChild(note); f.appendChild(go); f.appendChild(st); item.appendChild(f);
       }
       box.appendChild(item);
     });
@@ -2917,6 +2958,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const v = (state.vd.open || []).find((x) => x.id === $("fVideo").value);
     if (!v) return;
     $("fCase").value = v.client; $("fMarketer").value = v.marketer || "";
+    if (v.videoType && !$("fVType").value.trim()) $("fVType").value = v.videoType;
+    if (v.duration && !$("fVDur").value.trim()) $("fVDur").value = v.duration;
     const t = (state.types || []).find((x) => /^ai ?video$/i.test(x)) || "AI Video";
     state.type = t; renderTypes(); if (state.mode === "new") $("fQty").value = 3;
     checkDup();
