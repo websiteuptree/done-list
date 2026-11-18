@@ -1,0 +1,6 @@
+# Always check for a newer page (the app changes often); the browser still reuses its copy when nothing changed (304).
+<IfModule mod_headers.c>
+  <FilesMatch "\.html?$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
