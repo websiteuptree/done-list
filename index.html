@@ -663,6 +663,9 @@ html.ready .boot-load { display: none; }
 .vd-pop .save { align-self: flex-start; background: var(--ink); color: #fff; border: none; border-radius: 999px; padding: 7px 18px; font-weight: 700; }
 .vd-pop .chip { display: inline-flex; align-items: center; gap: 6px; }
 .vd-pop .chip .avatar.xs { margin: 0; }
+.vd-pop .fin-lbl { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 2px; }
+.vd-pop .fin-lbl b { color: var(--bad); }
+.vd-pop .chips { gap: 6px; }
 .vdlist td:last-child { white-space: nowrap; }
 .vchip { display: inline-flex; align-items: center; gap: 6px; max-width: 190px; padding: 4px 10px 4px 6px; border-radius: 999px; background: #F1F3F4; border: 1px solid #E3E3E3; color: #1F1F1F; text-decoration: none; font-size: 13px; font-weight: 500; line-height: 1.3; }
 a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
@@ -2674,6 +2677,45 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     vdPopOpen = () => { pop.remove(); if (onClose) onClose(); };
     return pop;
   }
+  // Video type + length, asked whenever a job is finished (Completed or final link pasted).
+  function vdFinishFields(pop, v) {
+    pop.appendChild(el("div", { class: "fin-lbl" }, "Video 类型 ")).appendChild(el("b", null, "*"));
+    const ty = el("input", { type: "text", maxlength: "40", list: "vdTypeList", placeholder: "例如 Sale / Creative", "aria-label": "Video 类型" }); ty.value = v.videoType || "";
+    const known = [...new Set(Object.values(state.vd.data || {}).flat().map((x) => x.videoType).filter(Boolean))].sort();
+    if (known.length) { const cs = el("div", { class: "chips" }); known.slice(0, 6).forEach((t) => { const b = el("button", { type: "button", class: "chip small" }, t); b.addEventListener("click", () => { ty.value = t; du.focus(); }); cs.appendChild(b); }); pop.appendChild(cs); }
+    pop.appendChild(ty);
+    pop.appendChild(el("div", { class: "fin-lbl" }, "时长 ")).appendChild(el("b", null, "*"));
+    const du = el("input", { type: "text", maxlength: "20", placeholder: "例如 1m05s / 29s", "aria-label": "时长" }); du.value = v.duration || "";
+    pop.appendChild(du);
+    return { ty, du, check(st) {
+      if (!ty.value.trim()) { st.textContent = "请填 Video 类型。"; st.className = "status bad"; ty.focus(); return false; }
+      if (!du.value.trim()) { st.textContent = "请填时长。"; st.className = "status bad"; du.focus(); return false; }
+      return true;
+    }, fields() { return { videoType: ty.value.trim(), duration: du.value.trim() }; } };
+  }
+  // Status → Completed when type / length / link are still missing: ask for them in one pop-up.
+  function vdFinishPop(v, td, ss) {
+    let saved = false;
+    vdPop(td, (pop) => {
+      pop.appendChild(el("div", { class: "help" }, "完成前补上这几样"));
+      pop.appendChild(el("div", { class: "fin-lbl" }, "成片链接"));
+      const u = el("input", { type: "url", placeholder: "贴上成片的 Drive link", "aria-label": "成片链接" }); u.value = v.link || ""; pop.appendChild(u);
+      const ff = vdFinishFields(pop, v);
+      const st = el("span", { class: "status" });
+      const ok = el("button", { type: "button", class: "save" }, "完成");
+      ok.addEventListener("click", () => {
+        if (u.value.trim() && !safeUrl(u.value.trim())) { st.textContent = "链接要用 https:// 开头。"; st.className = "status bad"; u.focus(); return; }
+        if (!ff.check(st)) return;
+        const f = Object.assign({ status: "done" }, ff.fields());
+        if (u.value.trim() !== (v.link || "")) f.link = u.value.trim();
+        saved = true; vdClosePop();
+        vdSave(v, f, td).then(() => renderVideos());
+      });
+      [u, ff.ty, ff.du].forEach((i) => i.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); ok.click(); } if (e.key === "Escape") vdClosePop(); }));
+      const row = el("div", { class: "row2" }); row.appendChild(ok); row.appendChild(st); pop.appendChild(row);
+      setTimeout(() => (u.value ? (ff.ty.value ? ff.du : ff.ty) : u).focus(), 0);
+    }, () => { if (!saved) { ss.value = v.status; ss.className = "cell vstat " + v.status; } });
+  }
   function vdLinkCell(v, urlKey, textKey, fallback) {
     const td = el("td", { class: "vd-linkcell" });
     const empty = !safeUrl(v[urlKey]) && !String(v[textKey] || "").trim();
@@ -2685,18 +2727,22 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       vdPop(td, (pop) => {
         const u = el("input", { type: "url", placeholder: "贴上链接 https://…", "aria-label": "链接" }); u.value = v[urlKey] || "";
         const n = el("input", { type: "text", maxlength: "200", "aria-label": "显示名字", placeholder: fallback === "Script" ? "Content 名字（选填，留空就用 Drive 文件名）" : "显示名字（选填，留空就用 Drive 文件名）" }); n.value = v[textKey] || "";
+        const fin = urlKey === "link";   // the final video link: type + length come with it
         const st = el("span", { class: "status" });
         const ok = el("button", { type: "button", class: "save" }, "保存");
+        let ff = null;
         ok.addEventListener("click", () => {
           if (u.value.trim() && !safeUrl(u.value.trim())) { st.textContent = "链接要用 https:// 开头。"; st.className = "status bad"; return; }
-          const f = { [textKey]: n.value.trim(), [urlKey]: u.value.trim() };
+          if (ff && u.value.trim() && !ff.check(st)) return;
+          const f = Object.assign({ [textKey]: n.value.trim(), [urlKey]: u.value.trim() }, ff && u.value.trim() ? ff.fields() : {});
           vdPopOpen = null; td.querySelector(".vd-pop").remove();
           const chip = vdChip(f[urlKey], f[textKey] || (f[urlKey] ? "读取名字…" : ""), fallback);
           if (td.firstChild && td.firstChild.classList && td.firstChild.classList.contains("vd-ed")) td.insertBefore(chip, td.firstChild); else td.replaceChild(chip, td.firstChild);
           vdSave(v, f, td).then(() => renderVideos());   // re-draw so the Drive file name shows
         });
-        [u, n].forEach((i) => i.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); ok.click(); } if (e.key === "Escape") vdClosePop(); }));
         pop.appendChild(u); pop.appendChild(n);
+        if (fin) ff = vdFinishFields(pop, v);
+        [u, n].concat(ff ? [ff.ty, ff.du] : []).forEach((i) => i.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); ok.click(); } if (e.key === "Escape") vdClosePop(); }));
         const row = el("div", { class: "row2" }); row.appendChild(ok); row.appendChild(st); pop.appendChild(row);
         setTimeout(() => (u.value ? n : u).focus(), 0);
       });
@@ -2739,7 +2785,11 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const c8 = el("td");
     const ss = el("select", { class: "cell vstat " + v.status, "aria-label": "Status" });
     Object.keys(VSTATUS).forEach((k) => ss.appendChild(el("option", { value: k }, VSTATUS[k]))); ss.value = v.status;
-    ss.addEventListener("change", () => { ss.className = "cell vstat " + ss.value; vdSave(v, { status: ss.value }, c8); });
+    ss.addEventListener("change", () => {
+      ss.className = "cell vstat " + ss.value;
+      if (ss.value === "done" && v.status !== "done" && (!v.videoType || !v.duration || !v.link)) { vdFinishPop(v, c8, ss); return; }
+      vdSave(v, { status: ss.value }, c8);
+    });
     c8.appendChild(ss); tr.appendChild(c8);
     tr.appendChild(vdLinkCell(v, "link", "linkText", "成片"));
     const act = el("td");
@@ -2754,13 +2804,15 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const two = el("div", { class: "two" });
     const sl = el("label", null, "Status"), ss = el("select"); Object.keys(VSTATUS).forEach((k) => ss.appendChild(el("option", { value: k }, VSTATUS[k]))); ss.value = v.status; sl.appendChild(ss);
     const dl = el("label", null, "Duration"), di = el("input", { type: "text", maxlength: "20", placeholder: "例如 1m05s" }); di.value = v.duration || ""; dl.appendChild(di);
-    two.appendChild(sl); two.appendChild(dl); f.appendChild(two);
+    const tl = el("label", null, "Video 类型"), ti = el("input", { type: "text", maxlength: "40", list: "vdTypeList", placeholder: "例如 Sale / Creative" }); ti.value = v.videoType || ""; tl.appendChild(ti);
+    two.appendChild(sl); two.appendChild(tl); two.appendChild(dl); f.appendChild(two);
     const ll = el("label", null, "Final 链接"), li = el("input", { type: "url", placeholder: "贴上成片的 Drive link" }); li.value = v.link || ""; ll.appendChild(li); f.appendChild(ll);
     const acts = el("div", { class: "acts" }), save = el("button", { type: "button", class: "save" }, "保存"), stt = el("span", { class: "status" });
     save.addEventListener("click", async () => {
       if (li.value.trim() && !safeUrl(li.value.trim())) { stt.textContent = "链接要用 https:// 开头。"; stt.className = "status bad"; return; }
+      if ((ss.value === "done" || li.value.trim()) && (!ti.value.trim() || !di.value.trim())) { stt.textContent = "交成片要一起填 Video 类型和时长。"; stt.className = "status bad"; (ti.value.trim() ? di : ti).focus(); return; }
       save.disabled = true; stt.textContent = "保存中…"; stt.className = "status";
-      try { putVideos(await call("videoSave", { id: v.id, month: state.vd.month, fields: { status: ss.value, duration: di.value.trim(), link: li.value.trim() } })); state.vd.upd = ""; renderVideos(); }
+      try { putVideos(await call("videoSave", { id: v.id, month: state.vd.month, fields: { status: ss.value, videoType: ti.value.trim(), duration: di.value.trim(), link: li.value.trim() } })); state.vd.upd = ""; renderVideos(); }
       catch (e) { stt.textContent = errMsg(e); stt.className = "status bad"; save.disabled = false; }
     });
     acts.appendChild(save); acts.appendChild(stt); f.appendChild(acts); td.appendChild(f);
@@ -2818,6 +2870,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       const fields = {}; Object.keys(inputs).forEach((k) => { fields[k] = inputs[k].value.trim(); });
       if (!fields.client) { st.textContent = "请填 Client / Project。"; st.className = "status bad"; inputs.client.focus(); return; }
       for (const k of ["contentUrl", "link"]) if (fields[k] && !safeUrl(fields[k])) { st.textContent = "链接要用 https:// 开头。"; st.className = "status bad"; inputs[k].focus(); return; }
+      const finishing = (fields.status === "done" && v.status !== "done") || (fields.link && fields.link !== (v.link || ""));
+      if (finishing && (!fields.videoType || !fields.duration)) { st.textContent = "交成片要一起填 Video 类型和时长。"; st.className = "status bad"; inputs[fields.videoType ? "duration" : "videoType"].focus(); return; }
       fields.marketer = canon(fields.marketer, state.marketers || [], state.aliases || {});
       fields.designer = picked;
       save.disabled = true; st.textContent = "保存中…"; st.className = "status";
