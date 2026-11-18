@@ -663,6 +663,10 @@ html.ready .boot-load { display: none; }
 .vd-pop .save { align-self: flex-start; background: var(--ink); color: #fff; border: none; border-radius: 999px; padding: 7px 18px; font-weight: 700; }
 .vd-pop .chip { display: inline-flex; align-items: center; gap: 6px; }
 .vd-pop .chip .avatar.xs { margin: 0; }
+.vdlist td.vd-client { position: relative; }
+.vd-kind { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .02em; padding: 1px 7px; border-radius: 5px; background: #E3EEFB; color: #2F6DB5; margin: 0 0 2px 10px; }
+.vd-stat.kind.on { outline: 2px solid #2F6DB5; }
+.vd-kindrow { display: flex; gap: 8px; align-items: center; margin: 0 0 14px; }
 .og-vmeta { display: flex; flex-direction: column; gap: 6px; }
 .og-vmeta .chips { gap: 6px; }
 .vd-pop .fin-lbl { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 2px; }
@@ -827,7 +831,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     <button type="button" role="tab" id="vDaily" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg><span>每日登记</span></button>
     <button type="button" role="tab" id="vMine" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><span>我的Case总数</span></button>
     <button type="button" role="tab" id="vSlot" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 14h3M13 14h3M8 17h3"/></svg><span>Slot</span></button>
-    <button type="button" role="tab" id="vVideo" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg><span>AI Video</span></button>
+    <button type="button" role="tab" id="vVideo" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg><span>Video</span></button>
     <button type="button" role="tab" id="vOut" aria-selected="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="M21 3l-7 7"/><path d="M11 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg><span>Outsource</span></button>
     <button type="button" role="tab" id="vCal" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg><span>请假 / 假期</span></button>
     <button type="button" role="tab" id="vStats" aria-selected="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>本月统计</span></button>
@@ -914,7 +918,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
           </div>
         </div>
         <div class="step" id="vidStep" hidden>
-          <label class="lbl" for="fVideo">AI Video 单<small>选了会自动带入 Case Name、Marketer、类型</small></label>
+          <label class="lbl" for="fVideo">Video 单<small>选了会自动带入 Case Name、Marketer、类型</small></label>
           <div class="ctl"><select id="fVideo"></select></div>
         </div>
         <div class="step" id="caseStep">
@@ -1034,9 +1038,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     </div>
   </section>
 
-  <section id="viewVideo" class="view" hidden aria-label="AI Video">
+  <section id="viewVideo" class="view" hidden aria-label="Video">
     <div class="sec-head" style="margin-bottom:0">
-      <h2>AI Video</h2>
+      <h2>Video</h2>
       <div class="monthnav"><button type="button" id="vdPrev" aria-label="上个月">‹</button><b id="vdMonth">—</b><button type="button" id="vdNext" aria-label="下个月">›</button></div>
     </div>
     <div class="vd-stats" id="vdStats"></div>
@@ -1050,7 +1054,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       </div>
       <div class="vd-form" id="vdForm" hidden></div>
       <div class="scroll"><table class="list vdlist"><colgroup><col class="c-client"><col class="c-content"><col class="c-type"><col class="c-dur"><col class="c-pic"><col class="c-des"><col class="c-due"><col class="c-st"><col class="c-link"><col class="c-act"></colgroup><thead><tr><th>Client / Project</th><th>Content</th><th>Video Type</th><th>Duration</th><th>PIC</th><th>Designer</th><th>Due</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
-      <p class="empty" id="vdEmpty" hidden>这个月还没有 AI Video 单。</p>
+      <p class="empty" id="vdEmpty" hidden>这个月还没有 Video 单。</p>
     </div>
     <datalist id="vdTypeList"></datalist><datalist id="vdMkList"></datalist>
   </section>
@@ -2275,7 +2279,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   });
 
   /* ---------- views ---------- */
-  const VIEWS = { daily: ["vDaily", "每日登记"], mine: ["vMine", "我的Case总数"], video: ["vVideo", "AI Video"], profile: ["vProfile", "My Profile"], slot: ["vSlot", "Slot"], out: ["vOut", "Outsource"], calendar: ["vCal", "请假 / 假期"], stats: ["vStats", "本月统计"], list: ["vList", "本月明细"], team: ["vTeam", "成员"] };
+  const VIEWS = { daily: ["vDaily", "每日登记"], mine: ["vMine", "我的Case总数"], video: ["vVideo", "Video"], profile: ["vProfile", "My Profile"], slot: ["vSlot", "Slot"], out: ["vOut", "Outsource"], calendar: ["vCal", "请假 / 假期"], stats: ["vStats", "本月统计"], list: ["vList", "本月明细"], team: ["vTeam", "成员"] };
   function setView(v, fromHash) {
     if (state.viewer && v !== "out") v = "slot";
     if (v === "out" && !state.viewer && !canManage()) v = "daily";
@@ -2627,6 +2631,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     names.forEach((n) => { const w = el("span", { class: "who-row" }); w.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n)); w.appendChild(el("span", null, n)); box.appendChild(w); });
     return box;
   }
+  function vdIsEdit(v) { return v && v.kind === "Video Editing"; }
   function renderVideos() {
     if ($("viewVideo").hidden) return;
     const m = state.vd.month, rows = state.vd.data[m] || [], t = today();
@@ -2635,10 +2640,10 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const who = $("vdWho");
     if (who.options.length !== state.designers.length + 1) { who.textContent = ""; who.appendChild(el("option", { value: "" }, "全部设计师")); state.designers.forEach((n) => who.appendChild(el("option", { value: n }, n))); who.value = state.vd.who; }
     // stats = quick filters
-    const cnt = { all: rows.length, none: 0, queue: 0, progress: 0, done: 0, late: 0 };
-    rows.forEach((v) => { if (!vdNames(v.designer).length) cnt.none++; cnt[v.status]++; if (v.status !== "done" && v.due && v.due < t) cnt.late++; });
+    const cnt = { all: rows.length, none: 0, queue: 0, progress: 0, done: 0, late: 0, ai: 0, edit: 0 };
+    rows.forEach((v) => { if (!vdNames(v.designer).length) cnt.none++; cnt[v.status]++; if (v.status !== "done" && v.due && v.due < t) cnt.late++; cnt[vdIsEdit(v) ? "edit" : "ai"]++; });
     const st = $("vdStats"); st.textContent = "";
-    [["", "这个月", cnt.all], ["none", "Not Yet Assign", cnt.none], ["queue", "Queue", cnt.queue], ["progress", "In Progress", cnt.progress], ["done", "Completed", cnt.done], ["late", "过了 Due 还没完成", cnt.late]].forEach(([k, label, n]) => {
+    [["", "这个月", cnt.all], ["none", "Not Yet Assign", cnt.none], ["queue", "Queue", cnt.queue], ["progress", "In Progress", cnt.progress], ["done", "Completed", cnt.done], ["late", "过了 Due 还没完成", cnt.late], ["ai", "AI Video", cnt.ai], ["edit", "Video Editing", cnt.edit]].forEach(([k, label, n]) => {
       const b = el("button", { type: "button", class: "vd-stat " + (k || "all") + (state.vd.filter === k ? " on" : ""), "aria-pressed": String(state.vd.filter === k) });
       b.appendChild(el("b", { class: "num" }, String(n))); b.appendChild(el("span", null, label));
       b.addEventListener("click", () => { state.vd.filter = state.vd.filter === k ? "" : k; renderVideos(); });
@@ -2654,13 +2659,15 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       if (f === "none" && vdNames(v.designer).length) return false;
       if (["queue", "progress", "done"].includes(f) && v.status !== f) return false;
       if (f === "late" && !(v.status !== "done" && v.due && v.due < t)) return false;
+      if (f === "ai" && vdIsEdit(v)) return false;
+      if (f === "edit" && !vdIsEdit(v)) return false;
       if (state.vd.who && !vdNames(v.designer).some((n) => norm(n) === norm(state.vd.who))) return false;
       if (qn && !norm([v.client, v.content, v.marketer, v.videoType].join(" ")).includes(qn)) return false;
       return true;
     }).sort((a, b) => (a.due || "9").localeCompare(b.due || "9") || (a.createdAt || "").localeCompare(b.createdAt || ""));
     const body = $("vdBody"); body.textContent = "";
     $("vdEmpty").hidden = list.length > 0;
-    $("vdEmpty").textContent = rows.length ? "没有符合的单。" : "这个月还没有 AI Video 单。";
+    $("vdEmpty").textContent = rows.length ? "没有符合的单。" : "这个月还没有 Video 单。";
     // Group by the week of the Due date (Mon–Sun), like the white / grey blocks in the old sheet.
     const groups = new Map();
     const noFilter = !state.vd.filter && !state.vd.who && !qn;
@@ -2793,7 +2800,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   }
   function vdRow(v, t) {
     const tr = el("tr", { class: isMineV(v) ? "mine" : "" });
-    const c1 = el("td", { class: "vd-client" }); c1.appendChild(vdCellInput(v, "client", { maxlength: "80" }, c1)); tr.appendChild(c1);
+    const c1 = el("td", { class: "vd-client" });
+    if (vdIsEdit(v)) c1.appendChild(el("span", { class: "vd-kind", title: "Video Editing（剪辑）" }, "剪辑"));
+    c1.appendChild(vdCellInput(v, "client", { maxlength: "80" }, c1)); tr.appendChild(c1);
     tr.appendChild(vdLinkCell(v, "contentUrl", "content", "Script"));
     const c3 = el("td"); c3.appendChild(vdCellInput(v, "videoType", { maxlength: "40", list: "vdTypeList", placeholder: "—" }, c3)); tr.appendChild(c3);
     const c4 = el("td", { class: "vd-dur" }); c4.appendChild(vdCellInput(v, "duration", { maxlength: "20", placeholder: "—" }, c4)); tr.appendChild(c4);
@@ -2864,6 +2873,14 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const box = $("vdForm"); box.textContent = ""; box.hidden = false; box.dataset.kind = "job";
     const isNew = !v; v = v || { client: "", content: "", contentUrl: "", videoType: "", duration: "", marketer: "", designer: "", received: today(), due: "", status: "queue", link: "", note: "" };
     box.appendChild(el("h3", null, isNew ? "开新单" : "修改：" + v.client));
+    let kind = vdIsEdit(v) ? "Video Editing" : "AI Video";
+    const kr = el("div", { class: "vd-kindrow chips", role: "group", "aria-label": "类别" });
+    ["AI Video", "Video Editing"].forEach((k) => {
+      const b = el("button", { type: "button", class: "chip", "aria-pressed": String(k === kind) }, k);
+      b.addEventListener("click", () => { kind = k; [...kr.children].forEach((c) => c.setAttribute("aria-pressed", String(c.textContent === k))); });
+      kr.appendChild(b);
+    });
+    box.appendChild(kr);
     const g = el("div", { class: "vd-grid" }), inputs = {};
     const field = (k, label, type, attrs) => {
       const l = el("label", null, label); let i;
@@ -2914,7 +2931,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       const finishing = (fields.status === "done" && v.status !== "done") || (fields.link && fields.link !== (v.link || ""));
       if (finishing && (!fields.videoType || !fields.duration)) { st.textContent = "交成片要一起填 Video 类型和时长。"; st.className = "status bad"; inputs[fields.videoType ? "duration" : "videoType"].focus(); return; }
       fields.marketer = canon(fields.marketer, state.marketers || [], state.aliases || {});
-      fields.designer = picked;
+      fields.designer = picked; fields.kind = kind;
       save.disabled = true; st.textContent = "保存中…"; st.className = "status";
       try {
         const res = await call("videoSave", { id: isNew ? "" : v.id, month: state.vd.month, fields });
@@ -2949,8 +2966,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const mine = (state.vd.open || []).filter(isMineV).sort((a, b) => (a.due || "9").localeCompare(b.due || "9"));
     const cur = sel.value;
     sel.textContent = "";
-    sel.appendChild(el("option", { value: "" }, "不是 AI Video 单 / 不在清单里"));
-    mine.forEach((v) => sel.appendChild(el("option", { value: v.id }, (v.due ? dmy(v.due) + " 交 · " : "") + v.client + (v.content ? " · " + v.content.slice(0, 30) : "") + (v.status === "progress" ? "（进行中）" : ""))));
+    sel.appendChild(el("option", { value: "" }, "不是 Video 单 / 不在清单里"));
+    mine.forEach((v) => sel.appendChild(el("option", { value: v.id }, (vdIsEdit(v) ? "【剪辑】" : "") + (v.due ? dmy(v.due) + " 交 · " : "") + v.client + (v.content ? " · " + v.content.slice(0, 30) : "") + (v.status === "progress" ? "（进行中）" : ""))));
     sel.value = mine.some((v) => v.id === cur) ? cur : "";
     $("vidStep").hidden = !mine.length || state.mode === "rev";
   }
@@ -2960,8 +2977,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     $("fCase").value = v.client; $("fMarketer").value = v.marketer || "";
     if (v.videoType && !$("fVType").value.trim()) $("fVType").value = v.videoType;
     if (v.duration && !$("fVDur").value.trim()) $("fVDur").value = v.duration;
-    const t = (state.types || []).find((x) => /^ai ?video$/i.test(x)) || "AI Video";
-    state.type = t; renderTypes(); if (state.mode === "new") $("fQty").value = 3;
+    const t = vdIsEdit(v) ? ((state.types || []).find((x) => /^video ?editing$/i.test(x)) || "Video Editing") : ((state.types || []).find((x) => /^ai ?video$/i.test(x)) || "AI Video");
+    state.type = t; renderTypes(); if (state.mode === "new") $("fQty").value = vdIsEdit(v) ? 1 : 3;
     checkDup();
   });
 
