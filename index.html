@@ -676,7 +676,7 @@ html.ready .boot-load { display: none; }
 button.vd-kind { border: none; padding: 0; cursor: pointer; }
 button.vd-kind:hover { filter: brightness(1.08); box-shadow: 0 0 0 2px #fff, 0 0 0 3px currentColor; }
 .vd-pop .kind-opt { display: flex; gap: 6px; }
-html.watch .panel.entry, html.watch #vProfile, html.watch .vd-wk-edit, html.watch #vdNew, html.watch #vdQuotaBtn, html.watch .vd-ed, html.watch .vdlist td:last-child .undo { display: none !important; }
+html.watch .panel.entry, html.watch #vProfile, html.watch #vMine, html.watch .vd-wk-edit, html.watch #vdNew, html.watch #vdQuotaBtn, html.watch .vd-ed, html.watch .vdlist td:last-child .undo { display: none !important; }
 html.watch .vdlist .cell, html.watch .vdlist .vd-desbtn, html.watch .vdlist button.vd-kind { pointer-events: none; }
 .vd-stat.kind.on { outline: 2px solid #2F6DB5; }
 .vd-kindrow { display: flex; gap: 8px; align-items: center; margin: 0 0 14px; }
@@ -2313,7 +2313,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     if (state.viewer && v !== "out") v = "slot";
     if (v === "out" && !state.viewer && !canSee()) v = "daily";
     if (v === "video" && !state.videoTeam) v = "daily";
-    if (v === "profile" && state.watch) v = "daily";
+    if (state.watch && (!VIEWS[v] || v === "profile" || v === "mine")) v = "stats";   // read-only accounts land on 本月统计
     if (!VIEWS[v] || (v === "team" && !canManage()) || (v === "stats" && !canSee())) v = v === "stats" ? "list" : "daily";
     state.view = v;
     Object.keys(VIEWS).forEach((k) => $(VIEWS[k][0]).setAttribute("aria-selected", String(k === v)));
@@ -3380,7 +3380,12 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     state.avatars = d.avatars || {}; state.email = d.me.email || "";
     state.videoTeam = !!d.me.videoTeam; $("vVideo").hidden = !state.videoTeam;
     state.watch = !!d.me.watch; document.documentElement.classList.toggle("watch", state.watch);
-    if (state.watch) { $("vProfile").hidden = true; renderTeamMode(); }
+    if (state.watch) {
+      $("vProfile").hidden = true; $("vMine").hidden = true;
+      const st = $("vStats"); if (st && st.parentNode) st.parentNode.insertBefore(st, st.parentNode.firstElementChild);   // 本月统计 first
+      renderTeamMode();
+      const h = location.hash.slice(1); if (!h || h === "mine" || h === "profile") setView("stats");
+    }
     state.driveRoot = d.driveRoot || ""; state.drive = d.drive || {}; state.sheetUrl = d.sheetUrl || "";
     const root = safeUrl(state.driveRoot); $("driveRootBtn").hidden = !root; if (root) $("driveRootBtn").href = root;
   }
