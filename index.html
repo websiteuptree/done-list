@@ -676,6 +676,8 @@ html.ready .boot-load { display: none; }
 button.vd-kind { border: none; padding: 0; cursor: pointer; }
 button.vd-kind:hover { filter: brightness(1.08); box-shadow: 0 0 0 2px #fff, 0 0 0 3px currentColor; }
 .vd-pop .kind-opt { display: flex; gap: 6px; }
+html.watch .panel.entry, html.watch #vProfile, html.watch #vdNew, html.watch #vdQuotaBtn, html.watch .vd-ed, html.watch .vdlist td:last-child .undo { display: none !important; }
+html.watch .vdlist .cell, html.watch .vdlist .vd-desbtn, html.watch .vdlist button.vd-kind { pointer-events: none; }
 .vd-stat.kind.on { outline: 2px solid #2F6DB5; }
 .vd-kindrow { display: flex; gap: 8px; align-items: center; margin: 0 0 14px; }
 .og-vmeta { display: flex; flex-direction: column; gap: 6px; }
@@ -2309,9 +2311,10 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   const VIEWS = { daily: ["vDaily", "每日登记"], mine: ["vMine", "我的Case总数"], video: ["vVideo", "Video"], profile: ["vProfile", "My Profile"], slot: ["vSlot", "Slot"], out: ["vOut", "Outsource"], calendar: ["vCal", "请假 / 假期"], stats: ["vStats", "本月统计"], list: ["vList", "本月明细"], team: ["vTeam", "成员"] };
   function setView(v, fromHash) {
     if (state.viewer && v !== "out") v = "slot";
-    if (v === "out" && !state.viewer && !canManage()) v = "daily";
+    if (v === "out" && !state.viewer && !canSee()) v = "daily";
     if (v === "video" && !state.videoTeam) v = "daily";
-    if (!VIEWS[v] || ((v === "team" || v === "stats") && !canManage())) v = v === "stats" ? "list" : "daily";
+    if (v === "profile" && state.watch) v = "daily";
+    if (!VIEWS[v] || (v === "team" && !canManage()) || (v === "stats" && !canSee())) v = v === "stats" ? "list" : "daily";
     state.view = v;
     Object.keys(VIEWS).forEach((k) => $(VIEWS[k][0]).setAttribute("aria-selected", String(k === v)));
     $("viewDaily").hidden = v !== "daily";
@@ -3147,13 +3150,13 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   state.mtab = "cases"; state.mq = ""; state.mineWho = "";
   function renderMine() {
     if (!$("viewMine") || state.viewer) return;
-    const who = (canManage() && state.mineWho) || state.me;
+    const who = (canSee() && state.mineWho) || (state.watch ? state.designers[0] : state.me);
     const sel = $("mWho");
-    sel.hidden = !canManage();
-    if (canManage() && sel.options.length !== state.designers.length) {
+    sel.hidden = !canSee();
+    if (canSee() && sel.options.length !== state.designers.length) {
       sel.textContent = ""; state.designers.forEach((n) => sel.appendChild(el("option", { value: n }, n)));
     }
-    if (canManage()) sel.value = who;
+    if (canSee()) sel.value = who;
     const mm = M(state.month), isC = state.mtab === "cases";
     const cases = mm.cases.filter((c) => c.designer === who), revs = mm.revs.filter((c) => c.designer === who);
     $("mTotalLbl").textContent = (who === state.me ? "我 " : who + " ") + monthLabel(state.month) + "完成";
@@ -3266,6 +3269,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     return p;
   }
   function canManage() { return state.admin && !state.preview; }
+  function canSee() { return canManage() || !!state.watch; }   // admin, or a read-only account
   function setTeamView(on) { state.preview = on; state.slotSel = null; renderAll(); if (state.view === "slot") { renderSlots(); renderSlotEdit(); } }
   $("teamBtn").addEventListener("click", () => setTeamView(!state.preview));
   $("teamExit").addEventListener("click", () => setTeamView(false));
@@ -3313,10 +3317,10 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     $("teamBtnText").textContent = state.preview ? "回到管理员视角" : "用 Team 视角看";
     $("teamBar").hidden = !(state.admin && state.preview);
     $("vTeam").hidden = !canManage() || state.viewer;
-    $("vStats").hidden = !canManage() || state.viewer;
-    $("vOut").hidden = !(state.viewer || canManage());
-    if (state.view === "out" && !state.viewer && !canManage()) setView("daily");
-    if ((state.view === "team" || state.view === "stats") && !canManage()) setView(state.view === "stats" ? "list" : "daily");
+    $("vStats").hidden = !canSee() || state.viewer;
+    $("vOut").hidden = !(state.viewer || canSee());
+    if (state.view === "out" && !state.viewer && !canSee()) setView("daily");
+    if ((state.view === "team" && !canManage()) || (state.view === "stats" && !canSee())) setView(state.view === "stats" ? "list" : "daily");
   }
   function renderCal() {
     const adm = canManage();
@@ -3375,6 +3379,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     state.marketers = d.marketers || []; state.clients = d.clients || []; state.aliases = d.aliases || {};
     state.avatars = d.avatars || {}; state.email = d.me.email || "";
     state.videoTeam = !!d.me.videoTeam; $("vVideo").hidden = !state.videoTeam;
+    state.watch = !!d.me.watch; document.documentElement.classList.toggle("watch", state.watch);
+    if (state.watch) { $("vProfile").hidden = true; renderTeamMode(); }
     state.driveRoot = d.driveRoot || ""; state.drive = d.drive || {}; state.sheetUrl = d.sheetUrl || "";
     const root = safeUrl(state.driveRoot); $("driveRootBtn").hidden = !root; if (root) $("driveRootBtn").href = root;
   }
