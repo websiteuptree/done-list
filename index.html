@@ -673,6 +673,9 @@ html.ready .boot-load { display: none; }
 .vd-cl .cell { min-width: 0; flex: 1; }
 .vd-kind { flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: 11px; font-weight: 800; color: #fff; background: #E8833A; margin-left: 6px; line-height: 1; }
 .vd-kind.edit { background: #2F6DB5; font-size: 12px; }
+button.vd-kind { border: none; padding: 0; cursor: pointer; }
+button.vd-kind:hover { filter: brightness(1.08); box-shadow: 0 0 0 2px #fff, 0 0 0 3px currentColor; }
+.vd-pop .kind-opt { display: flex; gap: 6px; }
 .vd-stat.kind.on { outline: 2px solid #2F6DB5; }
 .vd-kindrow { display: flex; gap: 8px; align-items: center; margin: 0 0 14px; }
 .og-vmeta { display: flex; flex-direction: column; gap: 6px; }
@@ -2825,7 +2828,25 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   function vdRow(v, t) {
     const tr = el("tr", { class: isMineV(v) ? "mine" : "" });
     const c1 = el("td", { class: "vd-client" }), cl = el("div", { class: "vd-cl" });
-    cl.appendChild(vdIsEdit(v) ? el("span", { class: "vd-kind edit", title: "Video Editing" }, "剪") : el("span", { class: "vd-kind", title: "AI Video" }, "AI"));
+    // The badge doubles as the switch: the video team clicks it to fix AI Video ↔ Video Editing.
+    const kb = el(state.videoTeam ? "button" : "span", { class: "vd-kind" + (vdIsEdit(v) ? " edit" : ""), title: (vdIsEdit(v) ? "Video Editing" : "AI Video") + (state.videoTeam ? "（点一下可以改）" : "") }, vdIsEdit(v) ? "剪" : "AI");
+    if (state.videoTeam) {
+      kb.type = "button"; kb.setAttribute("aria-label", "改类别");
+      kb.addEventListener("click", (e) => {
+        e.stopPropagation();
+        vdPop(c1, (pop) => {
+          pop.appendChild(el("div", { class: "help" }, "这张单是："));
+          const row = el("div", { class: "kind-opt chips" });
+          ["AI Video", "Video Editing"].forEach((k) => {
+            const b = el("button", { type: "button", class: "chip small", "aria-pressed": String((vdIsEdit(v) ? "Video Editing" : "AI Video") === k) }, k);
+            b.addEventListener("click", () => { vdClosePop(); if ((vdIsEdit(v) ? "Video Editing" : "AI Video") !== k) vdSave(v, { kind: k }, c1).then(() => renderVideos()); });
+            row.appendChild(b);
+          });
+          pop.appendChild(row);
+        });
+      });
+    }
+    cl.appendChild(kb);
     cl.appendChild(vdCellInput(v, "client", { maxlength: "80" }, c1)); c1.appendChild(cl); tr.appendChild(c1);
     tr.appendChild(vdLinkCell(v, "contentUrl", "content", "Script"));
     const c3 = el("td"); c3.appendChild(vdCellInput(v, "videoType", { maxlength: "40", list: "vdTypeList", placeholder: "—" }, c3)); tr.appendChild(c3);
