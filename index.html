@@ -2247,7 +2247,13 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     renderOutChips();
     checkOutDate();
     $("oMonth").textContent = monthLabel(state.oMonth);
-    try { renderOut(await call("outList", { month: state.oMonth })); } catch (e) { $("oSummary").textContent = errMsg(e); }
+    const saved = cacheGet("o:" + state.oMonth); if (saved && saved.month === state.oMonth) renderOut(saved);
+    try { const d = await call("outList", { month: state.oMonth }); cacheSet("o:" + d.month, d); renderOut(d); } catch (e) { if (!saved) $("oSummary").textContent = errMsg(e); }
+  }
+  // Background fetch so the Outsource page opens with data already there.
+  async function prefetchOut() {
+    const m = state.oMonth || today().slice(0, 7);
+    try { const d = await call("outList", { month: m }); cacheSet("o:" + d.month, d); if (state.view === "out") renderOut(d); } catch (e) {}
   }
   function renderOut(d) {
     if (d.month !== state.oMonth) return;
@@ -3415,6 +3421,12 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     ready();
     startTimers();
     if (state.videoTeam) loadVideoOpen();
+    // Warm up the other pages while the person reads the first one, so switching tabs does not wait.
+    setTimeout(() => {
+      if (state.view !== "slot") loadSlots(true);
+      if (state.videoTeam && state.view !== "video") { const m = state.vd.month; call("videos", { month: m }).then((d) => { putVideos(d); if (state.view === "video") renderVideos(); }).catch(() => {}); }
+      if (canSee() && state.view !== "out") prefetchOut();
+    }, 1200);
   }
   (async () => {
     if (!TOKEN) { ready(); showNotice("这个链接不完整。请用 Jie Yi 发给你的专属链接打开。"); return; }
