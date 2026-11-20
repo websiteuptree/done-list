@@ -695,6 +695,7 @@ button.vd-kind:hover { filter: brightness(1.08); box-shadow: 0 0 0 2px #fff, 0 0
 .av-bar { height: 5px; border-radius: 3px; background: #F1F0EA; overflow: hidden; }
 .av-bar i { display: block; height: 100%; border-radius: 3px; background: var(--upt); }
 .av-row.full .av-bar i { background: var(--ink); }
+.av-row.late { opacity: .5; }
 @media (max-width: 720px) {
   .av-best { padding: 16px 18px; gap: 14px; }
   .av-best b { font-size: 26px; }
@@ -2292,12 +2293,13 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   /* ---------- AI Video 排期: open video slots per week (numbers only) ---------- */
   function renderAvail(d) {
     const box = $("avBody"); box.textContent = "";
-    if (!d || !d.weeks || !("aiCap" in (d.weeks[0] || {}))) { box.appendChild(el("p", { class: "help" }, "载入中…")); return; }
+    if (!d || !d.weeks || !("aiLeft" in (d.weeks[0] || {}))) { box.appendChild(el("p", { class: "help" }, "载入中…")); return; }
     const md = (iso) => Number(iso.slice(8, 10)) + "/" + Number(iso.slice(5, 7));
     // Two kinds, two quotas: AI Video (sum of each person's weekly quota) and Video Editing (one team number).
     const KINDS = [{ k: "ai", cap: "aiCap", label: "AI Video", badge: "AI", cls: "" }, { k: "edit", cap: "editCap", label: "Video Editing", badge: "剪", cls: " edit" }];
-    const left = (w, K) => Math.max(0, (w[K.cap] || 0) - (w[K.k] || 0));
-    const firstOpen = {}; KINDS.forEach((K) => { firstOpen[K.k] = d.weeks.find((w) => left(w, K) > 0) || null; });
+    const left = (w, K) => w[K.k + "Left"] || 0;   // each person's free slots, less unassigned jobs (worked out by the server)
+    const wd = new Date(d.today + "T12:00:00").getDay(), from = wd === 0 || wd >= 4 ? 1 : 0;   // Thursday onwards: this week is too late to book
+    const firstOpen = {}; KINDS.forEach((K) => { firstOpen[K.k] = d.weeks.slice(from).find((w) => left(w, K) > 0) || null; });
     const head = el("div", { class: "av-best" });
     KINDS.forEach((K) => {
       const c = el("div"), k = el("div", { class: "k" });
@@ -2313,7 +2315,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       const when = el("div", { class: "when" }); when.appendChild(el("b", null, i === 0 ? "本周" : i === 1 ? "下周" : "")); when.appendChild(document.createTextNode(md(w.week) + " – " + md(w.fri))); c.appendChild(when);
       KINDS.forEach((K) => {
         const cap = w[K.cap] || 0, used = w[K.k] || 0, n = left(w, K), off = cap === 0 && !used, full = !off && n === 0;
+        const late = i === 0 && from === 1;   // this week, shown for reference only
         const r = el("div", { class: "av-row" + (full ? " full" : "") + (off ? " off" : "") + (firstOpen[K.k] === w ? " best" : ""), title: K.label + "：这周名额 " + cap + "，已排 " + used });
+        if (late) r.classList.add("late");
         r.appendChild(el("span", { class: "vd-kind" + K.cls }, K.badge));
         const num = el("div", { class: "num" });
         if (off) num.textContent = "这周不接";
@@ -3125,14 +3129,19 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     for (let d = 1; d <= new Date(y, mo, 0).getDate(); d++) { const iso = m + "-" + pad(d); if (new Date(y, mo - 1, d).getDay() === 5) out.push(mondayOf(iso)); }
     return out;
   }
-  const VD_EDITQ = "__edit__";   // the team-wide weekly Video Editing quota, kept beside the per-person AI Video quotas
+  // Each person has two weekly quotas: AI Video under their name, Video Editing under "Name::edit". Defaults: 2 and 1.
+  const VD_EK = "::edit", VD_DEF = { ai: 2, edit: 1 };
+  const vdBase = (k) => k.endsWith(VD_EK) ? k.slice(0, -VD_EK.length) : k;
   function vdTeam() {
     const q = state.vd.quota || { def: {}, weeks: {} };
-    const names = Object.keys(q.def).filter((n) => n !== VD_EDITQ);
-    Object.values(q.weeks).forEach((o) => Object.keys(o).forEach((n) => { if (n !== VD_EDITQ && !names.includes(n)) names.push(n); }));
+    const names = [];
+    [q.def].concat(Object.values(q.weeks)).forEach((o) => Object.keys(o).forEach((k) => { const n = vdBase(k); if (n !== "__edit__" && !names.includes(n)) names.push(n); }));
     return names.sort((a, b) => state.designers.indexOf(a) - state.designers.indexOf(b));
   }
-  function quotaOf(w, n) { const q = state.vd.quota || { def: {}, weeks: {} }; const o = q.weeks[w] || {}; return n in o ? Number(o[n]) : Number(q.def[n] || 0); }
+  function quotaOf(w, n, kind) {
+    const q = state.vd.quota || { def: {}, weeks: {} }, k = kind === "edit" ? n + VD_EK : n, o = q.weeks[w] || {};
+    return k in o ? Number(o[k]) : k in q.def ? Number(q.def[k]) : VD_DEF[kind === "edit" ? "edit" : "ai"];
+  }
   // Weeks can be folded; the choice is kept in this browser.
   const VD_FOLD = "dl1:vdFolded";
   state.vd.folded = (() => { try { return new Set(JSON.parse(localStorage.getItem(VD_FOLD) || "[]")); } catch (e) { return new Set(); } })();
@@ -3156,35 +3165,40 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const tr = el("tr", { class: "vd-week" + (vdIsShut(w) ? " shut" : "") }), td = el("td", { colspan: "10" }); tr.appendChild(td);
     const wrap = el("div", { class: "vd-wk" });
     if (w === "none") { wrap.appendChild(vdWeekTitle(w, "还没定 Due", "", nShown)); td.appendChild(wrap); return tr; }
-    const fri = addDays(w, 4), sun = addDays(w, 6), md = (d) => Number(d.slice(8, 10)) + "/" + Number(d.slice(5, 7));
+    const sun = addDays(w, 6), md = (d) => Number(d.slice(8, 10)) + "/" + Number(d.slice(5, 7));
     const mw = vdMonthWeeks(state.vd.month), wn = mw.indexOf(w) >= 0 ? mw.indexOf(w) + 1 : mw.filter((x) => x < w).length + 1;
     wrap.appendChild(vdWeekTitle(w, "Week " + wn, "(" + md(w) + " - " + md(sun) + ")", nShown));
-    const aiRows = weekRows.filter((v) => !vdIsEdit(v)), editN = weekRows.length - aiRows.length, editCap = quotaOf(w, VD_EDITQ);
-    const team = vdTeam(), used = {}; let none = 0;
-    aiRows.forEach((v) => { const ns = vdNames(v.designer); if (!ns.length) none++; ns.forEach((n) => { const k = team.find((x) => norm(x) === norm(n)) || n; used[k] = (used[k] || 0) + 1; }); });
-    const cap = team.reduce((a, n) => a + quotaOf(w, n), 0), booked = aiRows.length;
-    const meter = el("div", { class: "vd-meter" + (booked > cap ? " over" : booked === cap ? " full" : "") });
-    const bar = el("div", { class: "vd-meter-bar" }), fill = el("i"); fill.style.width = Math.min(100, cap ? booked / cap * 100 : booked ? 100 : 0) + "%"; bar.appendChild(fill);
+    const team = vdTeam(), K = { ai: { used: {}, none: 0, n: 0 }, edit: { used: {}, none: 0, n: 0 } };
+    weekRows.forEach((v) => {
+      const k = K[vdIsEdit(v) ? "edit" : "ai"]; k.n++;
+      const ns = vdNames(v.designer); if (!ns.length) k.none++;
+      ns.forEach((n) => { const p = team.find((x) => norm(x) === norm(n)) || n; k.used[p] = (k.used[p] || 0) + 1; });
+    });
+    const capAi = team.reduce((a, n) => a + quotaOf(w, n, "ai"), 0), capEd = team.reduce((a, n) => a + quotaOf(w, n, "edit"), 0);
+    const meter = el("div", { class: "vd-meter" + (K.ai.n > capAi ? " over" : K.ai.n === capAi ? " full" : "") });
+    const bar = el("div", { class: "vd-meter-bar" }), fill = el("i"); fill.style.width = Math.min(100, capAi ? K.ai.n / capAi * 100 : K.ai.n ? 100 : 0) + "%"; bar.appendChild(fill);
     meter.appendChild(bar);
     const txt = el("span", { class: "vd-meter-txt" });
-    txt.appendChild(el("span", { class: "vd-kind", style: "margin:0 6px 0 0;width:18px;height:18px;font-size:9.5px;vertical-align:-3px" }, "AI"));
-    txt.appendChild(el("b", { class: "num" }, booked + " / " + cap));
-    txt.appendChild(document.createTextNode(booked > cap ? " 超出 " + (booked - cap) : booked === cap ? " 已排满" : " 还可以排 " + (cap - booked)));
+    const tag = (t, edit) => el("span", { class: "vd-kind" + (edit ? " edit" : ""), style: "margin:0 5px 0 0;width:18px;height:18px;font-size:9.5px;vertical-align:-3px" }, t);
+    txt.appendChild(tag("AI")); txt.appendChild(el("b", { class: "num" }, K.ai.n + "/" + capAi));
+    txt.appendChild(el("span", { style: "display:inline-block;width:12px" }));
+    txt.appendChild(tag("剪", true)); txt.appendChild(el("b", { class: "num", style: K.edit.n > capEd ? "color:var(--bad)" : "" }, K.edit.n + "/" + capEd));
     meter.appendChild(txt);
     wrap.appendChild(meter);
     const ppl = el("div", { class: "vd-wk-ppl" });
-    team.forEach((n) => {
-      const q = quotaOf(w, n), u = used[n] || 0;
-      const c = el("span", { class: "vd-q" + (u > q ? " over" : u === q && q > 0 ? " full" : "") + (q === 0 && !u ? " off" : ""), title: n + "：这周名额 " + q + "，已分 " + u });
+    const chip = (n, inTeam) => {
+      const qa = inTeam ? quotaOf(w, n, "ai") : 0, qe = inTeam ? quotaOf(w, n, "edit") : 0, ua = K.ai.used[n] || 0, ue = K.edit.used[n] || 0;
+      const over = ua > qa || ue > qe, full = !over && ua === qa && ue === qe && qa + qe > 0;
+      const c = el("span", { class: "vd-q" + (over ? " over" : full ? " full" : "") + (qa + qe === 0 && !ua && !ue ? " off" : ""), title: n + "：AI " + ua + "/" + qa + "，剪辑 " + ue + "/" + qe });
       c.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n));
-      c.appendChild(el("b", { class: "num" }, u + "/" + q));
-      ppl.appendChild(c);
-    });
-    Object.keys(used).filter((n) => !team.includes(n)).forEach((n) => { const c = el("span", { class: "vd-q over", title: n + " 没有设名额" }); c.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n)); c.appendChild(el("b", { class: "num" }, used[n] + "/0")); ppl.appendChild(c); });
+      c.appendChild(el("b", { class: "num" }, ua + "/" + qa));
+      c.appendChild(el("span", { class: "num", style: "font-size:11px;opacity:.75;margin-left:3px" }, "剪" + ue + "/" + qe));
+      return c;
+    };
+    team.forEach((n) => ppl.appendChild(chip(n, true)));
+    [...new Set(Object.keys(K.ai.used).concat(Object.keys(K.edit.used)))].filter((n) => !team.includes(n)).forEach((n) => ppl.appendChild(chip(n, false)));
+    const none = K.ai.none + K.edit.none;
     if (none) ppl.appendChild(el("span", { class: "vd-q none", title: none + " 张还没分给人" }, none + " 张未分"));
-    const ed = el("span", { class: "vd-q" + (editN > editCap ? " over" : editN === editCap && editCap > 0 ? " full" : "") + (editCap === 0 && !editN ? " off" : ""), title: "Video Editing：这周名额 " + editCap + "，已排 " + editN });
-    ed.appendChild(el("span", { class: "vd-kind edit", style: "margin:0;width:18px;height:18px;font-size:10px" }, "剪")); ed.appendChild(el("b", { class: "num" }, editN + "/" + editCap));
-    ppl.appendChild(ed);
     wrap.appendChild(ppl);
     if (state.videoTeam) {
       const b = el("button", { type: "button", class: "vd-wk-edit" }, state.vd.qEdit === w ? "完成" : "改名额");
@@ -3199,21 +3213,26 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     try { const r = await call("vquota", { week, designer: n, qty: val }); state.vd.quota = r.quota; cacheSet("v:" + state.vd.month, Object.assign({}, cacheGet("v:" + state.vd.month) || {}, { quota: r.quota })); renderVideos(); if (week === "default") renderQuotaPanel(); }
     catch (e) { input.classList.remove("saving"); $("vdLoad").textContent = "名额没存到：" + errMsg(e); }
   }
+  // One label per person with two boxes: AI Video and 剪辑 (Video Editing).
+  function vdQuotaInputs(n, week, q) {
+    const l = el("label", { class: "vd-qin" }); l.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n)); l.appendChild(el("span", null, n));
+    [["ai", "AI", ""], ["edit", "剪", " edit"]].forEach(([kind, t, cls]) => {
+      const key = kind === "edit" ? n + VD_EK : n;
+      l.appendChild(el("span", { class: "vd-kind" + cls, style: "margin:0 0 0 6px;width:18px;height:18px;font-size:9.5px" }, t));
+      const i = el("input", { type: "number", min: "0", max: "20", "aria-label": n + " " + (kind === "edit" ? "Video Editing" : "AI Video") });
+      if (week === "default") i.value = key in q.def ? q.def[key] : VD_DEF[kind];
+      else { const wk = q.weeks[week] || {}; i.value = key in wk ? wk[key] : ""; i.placeholder = String(key in q.def ? q.def[key] : VD_DEF[kind]); }
+      i.addEventListener("change", () => vdQuotaSet(week, key, week === "default" ? (i.value.trim() || "0") : i.value.trim(), i));
+      l.appendChild(i);
+    });
+    return l;
+  }
   function vdQuotaRow(w) {
     const tr = el("tr", { class: "vd-qedit" }), td = el("td", { colspan: "10" }); tr.appendChild(td);
     const box = el("div", { class: "vd-qbox" });
-    box.appendChild(el("span", { class: "help" }, "这周每人几个（空白 = 用每周默认）"));
+    box.appendChild(el("span", { class: "help" }, "这周每人接几支（空白 = 用每周默认）"));
     const q = state.vd.quota || { def: {}, weeks: {} };
-    vdTeam().forEach((n) => {
-      const l = el("label", { class: "vd-qin" }); l.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n)); l.appendChild(el("span", null, n));
-      const i = el("input", { type: "number", min: "0", max: "20", placeholder: String(q.def[n] || 0) });
-      const wk = q.weeks[w] || {}; i.value = n in wk ? wk[n] : "";
-      i.addEventListener("change", () => vdQuotaSet(w, n, i.value.trim(), i));
-      l.appendChild(i); box.appendChild(l);
-    });
-    { const l = el("label", { class: "vd-qin" }); l.appendChild(el("span", { class: "vd-kind edit", style: "margin:0;width:20px;height:20px;font-size:10px" }, "剪")); l.appendChild(el("span", null, "Video Editing（全组）"));
-      const i = el("input", { type: "number", min: "0", max: "20", placeholder: String(q.def[VD_EDITQ] || 0) }); const wk = q.weeks[w] || {}; i.value = VD_EDITQ in wk ? wk[VD_EDITQ] : "";
-      i.addEventListener("change", () => vdQuotaSet(w, VD_EDITQ, i.value.trim(), i)); l.appendChild(i); box.appendChild(l); }
+    vdTeam().forEach((n) => box.appendChild(vdQuotaInputs(n, w, q)));
     td.appendChild(box);
     return tr;
   }
@@ -3221,24 +3240,16 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const box = $("vdForm"); if (box.dataset.kind !== "quota" || box.hidden) return;
     box.textContent = "";
     box.appendChild(el("h3", null, "每周默认名额"));
-    box.appendChild(el("p", { class: "help", style: "margin:0" }, "AI Video：每人每个礼拜做几支。Video Editing：全组每个礼拜接几支。某一周不一样（请假、多接），在那一周的标题按「改名额」。"));
+    box.appendChild(el("p", { class: "help", style: "margin:0" }, "每人每个礼拜接几支 AI Video（AI）和几支剪辑（剪）。基础是 AI 2、剪 1。某一周不一样（请假、多接），在那一周的标题按「改名额」。"));
     const q = state.vd.quota || { def: {}, weeks: {} };
     const grid = el("div", { class: "vd-qbox" });
-    const names = [...new Set(vdTeam().concat((state.designers || []).filter((n) => n in q.def)))];
-    names.forEach((n) => {
-      const l = el("label", { class: "vd-qin" }); l.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n)); l.appendChild(el("span", null, n));
-      const i = el("input", { type: "number", min: "0", max: "20" }); i.value = q.def[n] || 0;
-      i.addEventListener("change", () => vdQuotaSet("default", n, i.value.trim() || "0", i));
-      l.appendChild(i); grid.appendChild(l);
-    });
-    { const l = el("label", { class: "vd-qin" }); l.appendChild(el("span", { class: "vd-kind edit", style: "margin:0;width:20px;height:20px;font-size:10px" }, "剪")); l.appendChild(el("span", null, "Video Editing（全组）"));
-      const i = el("input", { type: "number", min: "0", max: "20" }); i.value = q.def[VD_EDITQ] || 0;
-      i.addEventListener("change", () => vdQuotaSet("default", VD_EDITQ, i.value.trim() || "0", i)); l.appendChild(i); grid.appendChild(l); }
+    const names = vdTeam();
+    names.forEach((n) => grid.appendChild(vdQuotaInputs(n, "default", q)));
     box.appendChild(grid);
     const add = el("div", { class: "row2" });
     const sel = el("select"); sel.appendChild(el("option", { value: "" }, "+ 加一个人进名额"));
     (state.designers || []).filter((n) => !names.includes(n)).forEach((n) => sel.appendChild(el("option", { value: n }, n)));
-    sel.addEventListener("change", () => { if (sel.value) vdQuotaSet("default", sel.value, "1", sel); });
+    sel.addEventListener("change", () => { if (sel.value) vdQuotaSet("default", sel.value, String(VD_DEF.ai), sel); });
     add.appendChild(sel);
     const close = el("button", { type: "button", class: "plainbtn" }, "关闭"); close.addEventListener("click", () => { box.hidden = true; box.textContent = ""; box.dataset.kind = ""; });
     add.appendChild(close);
