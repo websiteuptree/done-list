@@ -878,7 +878,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     <button type="button" role="tab" id="vDaily" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg><span>每日登记</span></button>
     <button type="button" role="tab" id="vMine" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><span>我的Case总数</span></button>
     <button type="button" role="tab" id="vSlot" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 14h3M13 14h3M8 17h3"/></svg><span>Design Slot</span></button>
-    <button type="button" role="tab" id="vAvail" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-4v12l-6-4z"/><path d="M6 12h6"/></svg><span>AI Video 排期</span></button>
+    <button type="button" role="tab" id="vAvail" aria-selected="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-4v12l-6-4z"/><path d="M6 12h6"/></svg><span>AI Video 排期</span></button>
     <button type="button" role="tab" id="vVideo" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg><span>Video</span></button>
     <button type="button" role="tab" id="vOut" aria-selected="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="M21 3l-7 7"/><path d="M11 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg><span>Outsource</span></button>
     <button type="button" role="tab" id="vCal" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg><span>请假 / 假期</span></button>
@@ -2408,6 +2408,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   const VIEWS = { daily: ["vDaily", "每日登记"], mine: ["vMine", "我的Case总数"], video: ["vVideo", "Video"], profile: ["vProfile", "My Profile"], slot: ["vSlot", "Design Slot"], avail: ["vAvail", "AI Video 排期"], out: ["vOut", "Outsource"], calendar: ["vCal", "请假 / 假期"], stats: ["vStats", "本月统计"], list: ["vList", "本月明细"], team: ["vTeam", "成员"] };
   function setView(v, fromHash) {
     if (state.viewer && v !== "out" && v !== "avail") v = "slot";
+    if (v === "avail" && !state.viewer && !state.watch) v = "daily";   // 排期 is for marketers (and read-only accounts); the team uses the Video page
     if (v === "out" && !state.viewer && !canSee()) v = "daily";
     if (v === "video" && !state.videoTeam) v = "daily";
     if (state.watch && (!VIEWS[v] || v === "profile" || v === "mine")) v = "stats";   // read-only accounts land on 本月统计
@@ -3437,6 +3438,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     $("vTeam").hidden = !canManage() || state.viewer;
     $("vStats").hidden = !canSee() || state.viewer;
     $("vOut").hidden = !(state.viewer || canSee());
+    $("vAvail").hidden = !(state.viewer || state.watch);
     if (state.view === "out" && !state.viewer && !canSee()) setView("daily");
     if ((state.view === "team" && !canManage()) || (state.view === "stats" && !canSee())) setView(state.view === "stats" ? "list" : "daily");
   }
@@ -3485,7 +3487,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     state.avatars = d.avatars || {};
     if (state.viewer) {
       $("brandLabel").textContent = "Creative Team Slot List";
-      $("vOut").hidden = false;
+      $("vOut").hidden = false; $("vAvail").hidden = false;
       state.marketers = d.marketers || []; state.aliases = d.aliases || {};
       ["vDaily", "vMine", "vVideo", "vProfile", "vCal", "vStats", "vList", "vTeam", "teamBtn", "driveRootBtn"].forEach((id) => { const x = $(id); if (x) x.hidden = true; });
       document.querySelector("header.band").hidden = true;
