@@ -676,29 +676,25 @@ html.ready .boot-load { display: none; }
 button.vd-kind { border: none; padding: 0; cursor: pointer; }
 button.vd-kind:hover { filter: brightness(1.08); box-shadow: 0 0 0 2px #fff, 0 0 0 3px currentColor; }
 .vd-pop .kind-opt { display: flex; gap: 6px; }
-.av-best { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-radius: 16px; padding: 20px 24px; margin: 6px 0 16px; background: var(--ink); color: #fff; box-shadow: 0 14px 34px rgba(0, 0, 0, .16); }
-.av-best small { display: block; font-size: 13px; color: rgba(255, 255, 255, .62); }
-.av-best b { display: block; font-size: 42px; font-weight: 300; letter-spacing: -.03em; line-height: 1.05; color: var(--upt); margin-top: 6px; }
-.av-best .mix { display: flex; gap: 14px; align-items: center; font-size: 14px; color: rgba(255, 255, 255, .8); }
-.av-best .mix .vd-kind { margin: 0 6px 0 0; }
-.av-best .mix > span { display: inline-flex; align-items: center; }
-.av-best .mix b { display: inline; font-size: 18px; font-weight: 700; letter-spacing: 0; line-height: 1; margin: 0; color: #fff; }
+.av-best { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px 32px; border-radius: 16px; padding: 20px 24px; margin: 6px 0 16px; background: var(--ink); color: #fff; box-shadow: 0 14px 34px rgba(0, 0, 0, .16); }
+.av-best .k { display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(255, 255, 255, .62); }
+.av-best .k .vd-kind { margin: 0; }
+.av-best b { display: block; font-size: 36px; font-weight: 300; letter-spacing: -.03em; line-height: 1.1; color: var(--upt); margin-top: 8px; }
+.av-best b.none { color: #fff; opacity: .7; }
 .av-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
-.av-wk { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; background: #fff; display: flex; flex-direction: column; gap: 8px; }
-.av-wk.best { border: 2px solid var(--upt); padding: 13px 15px; }
+.av-wk { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; background: #fff; display: flex; flex-direction: column; gap: 10px; }
 .av-wk .when { font-size: 13px; color: var(--muted); }
 .av-wk .when b { color: var(--fg); font-weight: 700; margin-right: 4px; }
-.av-wk .num { font-size: 34px; font-weight: 300; letter-spacing: -.03em; line-height: 1; color: var(--fg); }
-.av-wk .num small { font-size: 13px; font-weight: 500; letter-spacing: 0; color: var(--muted); margin-left: 4px; }
-.av-wk.full .num { font-size: 22px; font-weight: 700; color: var(--prog); letter-spacing: 0; }
-.av-wk.off .num { font-size: 22px; font-weight: 700; color: var(--muted); letter-spacing: 0; }
-.av-bar { height: 6px; border-radius: 3px; background: #F1F0EA; overflow: hidden; }
+.av-row { display: grid; grid-template-columns: 22px 1fr; gap: 4px 10px; align-items: center; }
+.av-row .vd-kind { margin: 0; width: 22px; height: 22px; font-size: 10.5px; grid-row: span 2; align-self: start; margin-top: 2px; }
+.av-row .num { font-size: 26px; font-weight: 300; letter-spacing: -.03em; line-height: 1; color: var(--fg); }
+.av-row .num small { font-size: 12.5px; font-weight: 500; letter-spacing: 0; color: var(--muted); margin-left: 4px; }
+.av-row.full .num { font-size: 16px; font-weight: 700; letter-spacing: 0; color: var(--prog); line-height: 26px; }
+.av-row.off .num { font-size: 14px; font-weight: 600; letter-spacing: 0; color: var(--muted); line-height: 26px; }
+.av-row.best .num { color: var(--upt-text); font-weight: 400; }
+.av-bar { height: 5px; border-radius: 3px; background: #F1F0EA; overflow: hidden; }
 .av-bar i { display: block; height: 100%; border-radius: 3px; background: var(--upt); }
-.av-wk.full .av-bar i { background: var(--ink); }
-.av-mix { display: flex; gap: 12px; align-items: center; font-size: 13px; color: var(--muted); }
-.av-mix > span { display: inline-flex; align-items: center; gap: 5px; }
-.av-mix .vd-kind { margin: 0; width: 20px; height: 20px; font-size: 10px; }
-.av-mix b { color: var(--fg); font-weight: 700; }
+.av-row.full .av-bar i { background: var(--ink); }
 html.watch .panel.entry, html.watch #vProfile, html.watch #vMine, html.watch .vd-wk-edit, html.watch #vdNew, html.watch #vdQuotaBtn, html.watch .vd-ed, html.watch .vdlist td:last-child .undo { display: none !important; }
 html.watch .vdlist .cell, html.watch .vdlist .vd-desbtn, html.watch .vdlist button.vd-kind { pointer-events: none; }
 .vd-stat.kind.on { outline: 2px solid #2F6DB5; }
@@ -1099,7 +1095,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
 
   <section id="viewAvail" class="view" hidden aria-label="AI Video 排期">
     <div class="panel">
-      <div class="sec-head" style="margin-bottom:0"><h2>AI Video 排期</h2><span class="hint" id="avNote">按交片日期算，AI Video 和 Video Editing 都占位子</span></div>
+      <div class="sec-head" style="margin-bottom:0"><h2>AI Video 排期</h2><span class="hint" id="avNote">按交片日期算，AI Video 和 Video Editing 各自的名额</span></div>
       <div id="avBody"><p class="help">载入中…</p></div>
       <p class="help" style="margin:14px 0 0">要排 AI Video / Video Editing 请找 Jie Yi。</p>
     </div>
@@ -2285,35 +2281,37 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   /* ---------- AI Video 排期: open video slots per week (numbers only) ---------- */
   function renderAvail(d) {
     const box = $("avBody"); box.textContent = "";
-    if (!d || !d.weeks) { box.appendChild(el("p", { class: "help" }, "载入中…")); return; }
+    if (!d || !d.weeks || !("aiCap" in (d.weeks[0] || {}))) { box.appendChild(el("p", { class: "help" }, "载入中…")); return; }
     const md = (iso) => Number(iso.slice(8, 10)) + "/" + Number(iso.slice(5, 7));
-    const left = (w) => Math.max(0, w.cap - w.booked);
-    // AI / 剪 badges with how many of each are booked that week (same squares as the Video page)
-    const mix = (w, cls) => {
-      const m = el("div", { class: cls });
-      [["AI", "", w.ai], ["剪", " edit", w.edit]].forEach(([t, k, n]) => { const s = el("span"); s.appendChild(el("span", { class: "vd-kind" + k }, t)); s.appendChild(el("b", null, String(n || 0))); m.appendChild(s); });
-      return m;
-    };
-    const best = d.weeks.find((w) => left(w) > 0);
+    // Two kinds, two quotas: AI Video (sum of each person's weekly quota) and Video Editing (one team number).
+    const KINDS = [{ k: "ai", cap: "aiCap", label: "AI Video", badge: "AI", cls: "" }, { k: "edit", cap: "editCap", label: "Video Editing", badge: "剪", cls: " edit" }];
+    const left = (w, K) => Math.max(0, (w[K.cap] || 0) - (w[K.k] || 0));
+    const firstOpen = {}; KINDS.forEach((K) => { firstOpen[K.k] = d.weeks.find((w) => left(w, K) > 0) || null; });
     const head = el("div", { class: "av-best" });
-    const hl = el("div");
-    hl.appendChild(el("small", null, best ? "最快可以排" : "接下来 6 个礼拜"));
-    hl.appendChild(el("b", null, best ? (best === d.weeks[0] ? "这个礼拜" : md(best.week) + " 那一周") + " · 剩 " + left(best) + " 个" : "都排满了"));
-    head.appendChild(hl);
-    if (best) { const r = el("div"); r.appendChild(el("small", { style: "margin-bottom:8px" }, "那一周已排")); r.appendChild(mix(best, "mix")); head.appendChild(r); }
+    KINDS.forEach((K) => {
+      const c = el("div"), k = el("div", { class: "k" });
+      k.appendChild(el("span", { class: "vd-kind" + K.cls }, K.badge)); k.appendChild(document.createTextNode(K.label + " 最快可以排")); c.appendChild(k);
+      const w = firstOpen[K.k];
+      c.appendChild(w ? el("b", null, (w === d.weeks[0] ? "这个礼拜" : md(w.week) + " 那一周") + " · 剩 " + left(w, K) + " 个") : el("b", { class: "none" }, "接下来 6 周都满了"));
+      head.appendChild(c);
+    });
     box.appendChild(head);
     const grid = el("div", { class: "av-grid" });
     d.weeks.forEach((w, i) => {
-      const n = left(w), full = w.cap > 0 && n === 0, off = w.cap === 0;
-      const c = el("div", { class: "av-wk" + (w === best ? " best" : "") + (full ? " full" : "") + (off ? " off" : "") });
+      const c = el("div", { class: "av-wk" });
       const when = el("div", { class: "when" }); when.appendChild(el("b", null, i === 0 ? "本周" : i === 1 ? "下周" : "")); when.appendChild(document.createTextNode(md(w.week) + " – " + md(w.fri))); c.appendChild(when);
-      const num = el("div", { class: "num" });
-      if (off) num.textContent = "这周不接";
-      else if (full) num.textContent = "已满" + (w.booked > w.cap ? "（超 " + (w.booked - w.cap) + "）" : "");
-      else { num.appendChild(document.createTextNode(String(n))); num.appendChild(el("small", null, "个位子 / " + w.cap)); }
-      c.appendChild(num);
-      const bar = el("div", { class: "av-bar" }), fill = el("i"); fill.style.width = (w.cap ? Math.min(100, Math.round(w.booked / w.cap * 100)) : 0) + "%"; bar.appendChild(fill); c.appendChild(bar);
-      c.appendChild(mix(w, "av-mix"));
+      KINDS.forEach((K) => {
+        const cap = w[K.cap] || 0, used = w[K.k] || 0, n = left(w, K), off = cap === 0 && !used, full = !off && n === 0;
+        const r = el("div", { class: "av-row" + (full ? " full" : "") + (off ? " off" : "") + (firstOpen[K.k] === w ? " best" : ""), title: K.label + "：这周名额 " + cap + "，已排 " + used });
+        r.appendChild(el("span", { class: "vd-kind" + K.cls }, K.badge));
+        const num = el("div", { class: "num" });
+        if (off) num.textContent = "这周不接";
+        else if (full) num.textContent = "已满" + (used > cap ? "（超 " + (used - cap) + "）" : "");
+        else { num.appendChild(document.createTextNode(String(n))); num.appendChild(el("small", null, "个位子 / " + cap)); }
+        r.appendChild(num);
+        const bar = el("div", { class: "av-bar" }), fill = el("i"); fill.style.width = (cap ? Math.min(100, Math.round(used / cap * 100)) : used ? 100 : 0) + "%"; bar.appendChild(fill); r.appendChild(bar);
+        c.appendChild(r);
+      });
       grid.appendChild(c);
     });
     box.appendChild(grid);
@@ -3116,10 +3114,11 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     for (let d = 1; d <= new Date(y, mo, 0).getDate(); d++) { const iso = m + "-" + pad(d); if (new Date(y, mo - 1, d).getDay() === 5) out.push(mondayOf(iso)); }
     return out;
   }
+  const VD_EDITQ = "__edit__";   // the team-wide weekly Video Editing quota, kept beside the per-person AI Video quotas
   function vdTeam() {
     const q = state.vd.quota || { def: {}, weeks: {} };
-    const names = Object.keys(q.def);
-    Object.values(q.weeks).forEach((o) => Object.keys(o).forEach((n) => { if (!names.includes(n)) names.push(n); }));
+    const names = Object.keys(q.def).filter((n) => n !== VD_EDITQ);
+    Object.values(q.weeks).forEach((o) => Object.keys(o).forEach((n) => { if (n !== VD_EDITQ && !names.includes(n)) names.push(n); }));
     return names.sort((a, b) => state.designers.indexOf(a) - state.designers.indexOf(b));
   }
   function quotaOf(w, n) { const q = state.vd.quota || { def: {}, weeks: {} }; const o = q.weeks[w] || {}; return n in o ? Number(o[n]) : Number(q.def[n] || 0); }
@@ -3149,13 +3148,15 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const fri = addDays(w, 4), sun = addDays(w, 6), md = (d) => Number(d.slice(8, 10)) + "/" + Number(d.slice(5, 7));
     const mw = vdMonthWeeks(state.vd.month), wn = mw.indexOf(w) >= 0 ? mw.indexOf(w) + 1 : mw.filter((x) => x < w).length + 1;
     wrap.appendChild(vdWeekTitle(w, "Week " + wn, "(" + md(w) + " - " + md(sun) + ")", nShown));
+    const aiRows = weekRows.filter((v) => !vdIsEdit(v)), editN = weekRows.length - aiRows.length, editCap = quotaOf(w, VD_EDITQ);
     const team = vdTeam(), used = {}; let none = 0;
-    weekRows.forEach((v) => { const ns = vdNames(v.designer); if (!ns.length) none++; ns.forEach((n) => { const k = team.find((x) => norm(x) === norm(n)) || n; used[k] = (used[k] || 0) + 1; }); });
-    const cap = team.reduce((a, n) => a + quotaOf(w, n), 0), booked = weekRows.length;
+    aiRows.forEach((v) => { const ns = vdNames(v.designer); if (!ns.length) none++; ns.forEach((n) => { const k = team.find((x) => norm(x) === norm(n)) || n; used[k] = (used[k] || 0) + 1; }); });
+    const cap = team.reduce((a, n) => a + quotaOf(w, n), 0), booked = aiRows.length;
     const meter = el("div", { class: "vd-meter" + (booked > cap ? " over" : booked === cap ? " full" : "") });
     const bar = el("div", { class: "vd-meter-bar" }), fill = el("i"); fill.style.width = Math.min(100, cap ? booked / cap * 100 : booked ? 100 : 0) + "%"; bar.appendChild(fill);
     meter.appendChild(bar);
     const txt = el("span", { class: "vd-meter-txt" });
+    txt.appendChild(el("span", { class: "vd-kind", style: "margin:0 6px 0 0;width:18px;height:18px;font-size:9.5px;vertical-align:-3px" }, "AI"));
     txt.appendChild(el("b", { class: "num" }, booked + " / " + cap));
     txt.appendChild(document.createTextNode(booked > cap ? " 超出 " + (booked - cap) : booked === cap ? " 已排满" : " 还可以排 " + (cap - booked)));
     meter.appendChild(txt);
@@ -3170,6 +3171,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     });
     Object.keys(used).filter((n) => !team.includes(n)).forEach((n) => { const c = el("span", { class: "vd-q over", title: n + " 没有设名额" }); c.appendChild(fillAvatar(el("span", { class: "avatar xs" }), n)); c.appendChild(el("b", { class: "num" }, used[n] + "/0")); ppl.appendChild(c); });
     if (none) ppl.appendChild(el("span", { class: "vd-q none", title: none + " 张还没分给人" }, none + " 张未分"));
+    const ed = el("span", { class: "vd-q" + (editN > editCap ? " over" : editN === editCap && editCap > 0 ? " full" : "") + (editCap === 0 && !editN ? " off" : ""), title: "Video Editing：这周名额 " + editCap + "，已排 " + editN });
+    ed.appendChild(el("span", { class: "vd-kind edit", style: "margin:0;width:18px;height:18px;font-size:10px" }, "剪")); ed.appendChild(el("b", { class: "num" }, editN + "/" + editCap));
+    ppl.appendChild(ed);
     wrap.appendChild(ppl);
     if (state.videoTeam) {
       const b = el("button", { type: "button", class: "vd-wk-edit" }, state.vd.qEdit === w ? "完成" : "改名额");
@@ -3196,6 +3200,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       i.addEventListener("change", () => vdQuotaSet(w, n, i.value.trim(), i));
       l.appendChild(i); box.appendChild(l);
     });
+    { const l = el("label", { class: "vd-qin" }); l.appendChild(el("span", { class: "vd-kind edit", style: "margin:0;width:20px;height:20px;font-size:10px" }, "剪")); l.appendChild(el("span", null, "Video Editing（全组）"));
+      const i = el("input", { type: "number", min: "0", max: "20", placeholder: String(q.def[VD_EDITQ] || 0) }); const wk = q.weeks[w] || {}; i.value = VD_EDITQ in wk ? wk[VD_EDITQ] : "";
+      i.addEventListener("change", () => vdQuotaSet(w, VD_EDITQ, i.value.trim(), i)); l.appendChild(i); box.appendChild(l); }
     td.appendChild(box);
     return tr;
   }
@@ -3203,7 +3210,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const box = $("vdForm"); if (box.dataset.kind !== "quota" || box.hidden) return;
     box.textContent = "";
     box.appendChild(el("h3", null, "每周默认名额"));
-    box.appendChild(el("p", { class: "help", style: "margin:0" }, "每人每个礼拜做几支 AI Video。某一周不一样（请假、多接），在那一周的标题按「改这周名额」。"));
+    box.appendChild(el("p", { class: "help", style: "margin:0" }, "AI Video：每人每个礼拜做几支。Video Editing：全组每个礼拜接几支。某一周不一样（请假、多接），在那一周的标题按「改名额」。"));
     const q = state.vd.quota || { def: {}, weeks: {} };
     const grid = el("div", { class: "vd-qbox" });
     const names = [...new Set(vdTeam().concat((state.designers || []).filter((n) => n in q.def)))];
@@ -3213,6 +3220,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       i.addEventListener("change", () => vdQuotaSet("default", n, i.value.trim() || "0", i));
       l.appendChild(i); grid.appendChild(l);
     });
+    { const l = el("label", { class: "vd-qin" }); l.appendChild(el("span", { class: "vd-kind edit", style: "margin:0;width:20px;height:20px;font-size:10px" }, "剪")); l.appendChild(el("span", null, "Video Editing（全组）"));
+      const i = el("input", { type: "number", min: "0", max: "20" }); i.value = q.def[VD_EDITQ] || 0;
+      i.addEventListener("change", () => vdQuotaSet("default", VD_EDITQ, i.value.trim() || "0", i)); l.appendChild(i); grid.appendChild(l); }
     box.appendChild(grid);
     const add = el("div", { class: "row2" });
     const sel = el("select"); sel.appendChild(el("option", { value: "" }, "+ 加一个人进名额"));
