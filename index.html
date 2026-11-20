@@ -685,16 +685,18 @@ button.vd-kind:hover { filter: brightness(1.08); box-shadow: 0 0 0 2px #fff, 0 0
 .av-wk { display: grid; grid-template-columns: 170px minmax(0, 1fr) minmax(0, 1fr); gap: 10px 28px; align-items: center; border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; background: #fff; }
 .av-wk .when { font-size: 13.5px; color: var(--muted); white-space: nowrap; }
 .av-wk .when b { color: var(--fg); font-weight: 700; margin-right: 6px; }
-.av-row { display: grid; grid-template-columns: 22px 118px minmax(40px, 1fr); gap: 10px; align-items: center; min-width: 0; }
+.av-row { display: grid; grid-template-columns: 22px 104px minmax(0, 1fr); gap: 4px 12px; align-items: center; min-width: 0; }
 .av-row .vd-kind { margin: 0; width: 22px; height: 22px; font-size: 10.5px; }
-.av-row .num { font-size: 24px; font-weight: 300; letter-spacing: -.03em; line-height: 1; color: var(--fg); white-space: nowrap; }
-.av-row .num small { font-size: 12.5px; font-weight: 500; letter-spacing: 0; color: var(--muted); margin-left: 4px; }
-.av-row.full .num { font-size: 15px; font-weight: 700; letter-spacing: 0; color: var(--prog); line-height: 24px; }
-.av-row.off .num { font-size: 14px; font-weight: 600; letter-spacing: 0; color: var(--muted); line-height: 24px; }
-.av-row.best .num { color: var(--upt-text); font-weight: 400; }
-.av-bar { height: 5px; border-radius: 3px; background: #F1F0EA; overflow: hidden; }
-.av-bar i { display: block; height: 100%; border-radius: 3px; background: var(--upt); }
-.av-row.full .av-bar i { background: var(--ink); }
+.av-row .num { font-size: 15px; color: var(--muted); white-space: nowrap; }
+.av-row .num b { font-size: 26px; font-weight: 300; letter-spacing: -.03em; color: var(--fg); margin: 0 3px; }
+.av-row.best .num b { color: var(--upt-text); font-weight: 400; }
+.av-row.full .num, .av-row.off .num { font-size: 15px; font-weight: 700; color: var(--prog); line-height: 26px; }
+.av-row.off .num { color: var(--muted); font-weight: 600; }
+.av-slots { display: flex; flex-wrap: wrap; gap: 4px; }
+.av-slots i { width: 13px; height: 13px; border-radius: 3px; border: 1.5px solid var(--upt); background: transparent; box-sizing: border-box; }
+.av-slots i.on { background: var(--ink); border-color: var(--ink); }
+.av-slots i.over { background: var(--prog); border-color: var(--prog); }
+.av-row .meta { grid-column: 3; font-size: 12px; color: var(--muted); }
 .av-row.late { opacity: .5; }
 @media (max-width: 720px) {
   .av-best { padding: 16px 18px; gap: 14px; }
@@ -702,10 +704,10 @@ button.vd-kind:hover { filter: brightness(1.08); box-shadow: 0 0 0 2px #fff, 0 0
   .av-wk { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 16px; padding: 12px 14px; }
   .av-wk .when { grid-column: 1 / -1; }
   .av-row { grid-template-columns: 22px minmax(0, 1fr); gap: 6px 8px; }
-  .av-row .av-bar { grid-column: 1 / -1; }
-  .av-row .num { font-size: 20px; }
-  .av-row .num small { font-size: 11.5px; }
-  .av-row.full .num, .av-row.off .num { font-size: 13px; line-height: 20px; }
+  .av-row .av-slots, .av-row .meta { grid-column: 1 / -1; }
+  .av-row .num b { font-size: 22px; }
+  .av-row.full .num, .av-row.off .num { font-size: 13px; line-height: 22px; }
+  .av-slots i { width: 11px; height: 11px; }
 }
 html.watch .panel.entry, html.watch #vProfile, html.watch #vMine, html.watch .vd-wk-edit, html.watch #vdNew, html.watch #vdQuotaBtn, html.watch .vd-ed, html.watch .vdlist td:last-child .undo { display: none !important; }
 html.watch .vdlist .cell, html.watch .vdlist .vd-desbtn, html.watch .vdlist button.vd-kind { pointer-events: none; }
@@ -2322,9 +2324,13 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         const num = el("div", { class: "num" });
         if (off) num.textContent = "这周不接";
         else if (full) num.textContent = "已满" + (used > cap ? "（超 " + (used - cap) + "）" : "");
-        else { num.appendChild(document.createTextNode(String(n))); num.appendChild(el("small", null, "个位子 / " + cap)); }
+        else { num.appendChild(document.createTextNode("剩")); num.appendChild(el("b", null, String(n))); num.appendChild(document.createTextNode("个")); }
         r.appendChild(num);
-        const bar = el("div", { class: "av-bar" }), fill = el("i"); fill.style.width = (cap ? Math.min(100, Math.round(used / cap * 100)) : used ? 100 : 0) + "%"; bar.appendChild(fill); r.appendChild(bar);
+        // one square per slot: dark = booked, open = still free, red = booked past the slots
+        const sq = el("div", { class: "av-slots", "aria-hidden": "true" });
+        for (let s = 0; s < Math.max(cap, used); s++) sq.appendChild(el("i", { class: s >= cap ? "over" : s < used ? "on" : "" }));
+        r.appendChild(sq);
+        r.appendChild(el("div", { class: "meta" }, off ? "" : "已排 " + used + " · 共 " + cap));
         c.appendChild(r);
       });
       grid.appendChild(c);
