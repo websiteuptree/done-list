@@ -676,6 +676,21 @@ html.ready .boot-load { display: none; }
 button.vd-kind { border: none; padding: 0; cursor: pointer; }
 button.vd-kind:hover { filter: brightness(1.08); box-shadow: 0 0 0 2px #fff, 0 0 0 3px currentColor; }
 .vd-pop .kind-opt { display: flex; gap: 6px; }
+.av-best { border-radius: 14px; padding: 16px 18px; margin: 4px 0 16px; background: var(--ok-soft); color: var(--ok); }
+.av-best.none { background: var(--bad-soft); color: var(--bad); }
+.av-best small { display: block; font-size: 13px; font-weight: 600; opacity: .85; }
+.av-best b { display: block; font-size: 24px; font-weight: 800; margin-top: 2px; }
+.av-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.av-wk { border: 1px solid var(--edge); border-radius: 12px; padding: 12px 14px; background: #fff; }
+.av-wk.best { border: 2px solid var(--ok); }
+.av-wk .when { font-size: 13px; color: var(--muted); }
+.av-wk .when b { color: var(--ink); font-weight: 700; margin-right: 4px; }
+.av-bar { height: 7px; border-radius: 4px; background: #EFEEE9; margin: 10px 0 8px; overflow: hidden; }
+.av-bar i { display: block; height: 100%; border-radius: 4px; background: var(--ok); }
+.av-wk.full .av-bar i { background: var(--bad); }
+.av-wk .left { font-size: 15px; font-weight: 800; color: var(--ok); }
+.av-wk.full .left { color: var(--bad); }
+.av-wk.off .left { color: var(--muted); }
 html.watch .panel.entry, html.watch #vProfile, html.watch #vMine, html.watch .vd-wk-edit, html.watch #vdNew, html.watch #vdQuotaBtn, html.watch .vd-ed, html.watch .vdlist td:last-child .undo { display: none !important; }
 html.watch .vdlist .cell, html.watch .vdlist .vd-desbtn, html.watch .vdlist button.vd-kind { pointer-events: none; }
 .vd-stat.kind.on { outline: 2px solid #2F6DB5; }
@@ -844,7 +859,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   <nav class="side-nav" role="tablist">
     <button type="button" role="tab" id="vDaily" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg><span>每日登记</span></button>
     <button type="button" role="tab" id="vMine" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><span>我的Case总数</span></button>
-    <button type="button" role="tab" id="vSlot" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 14h3M13 14h3M8 17h3"/></svg><span>Slot</span></button>
+    <button type="button" role="tab" id="vSlot" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 14h3M13 14h3M8 17h3"/></svg><span>Design Slot</span></button>
+    <button type="button" role="tab" id="vAvail" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-4v12l-6-4z"/><path d="M6 12h6"/></svg><span>AI Video 排期</span></button>
     <button type="button" role="tab" id="vVideo" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg><span>Video</span></button>
     <button type="button" role="tab" id="vOut" aria-selected="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="M21 3l-7 7"/><path d="M11 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg><span>Outsource</span></button>
     <button type="button" role="tab" id="vCal" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg><span>请假 / 假期</span></button>
@@ -1073,8 +1089,16 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     <datalist id="vdTypeList"></datalist><datalist id="vdMkList"></datalist>
   </section>
 
-  <section id="viewSlot" class="view" hidden aria-label="Slot">
-    <div class="sec-head" style="margin-bottom:0"><h2>Slot</h2></div>
+  <section id="viewAvail" class="view" hidden aria-label="AI Video 排期">
+    <div class="panel">
+      <div class="sec-head" style="margin-bottom:0"><h2>AI Video 排期</h2><span class="hint" id="avNote">按交片日期算，AI Video 和 Video Editing 都占位子</span></div>
+      <div id="avBody"><p class="help">载入中…</p></div>
+      <p class="help" style="margin:14px 0 0">要排 AI Video / Video Editing 请找 Jie Yi。</p>
+    </div>
+  </section>
+
+  <section id="viewSlot" class="view" hidden aria-label="Design Slot">
+    <div class="sec-head" style="margin-bottom:0"><h2>Design Slot</h2></div>
     <p class="readonly" id="slotHint" style="margin:0">点你自己那一行的格子，就能记那天被谁 book 了什么、标 FULL 或请假。</p>
     <div class="slotbar">
       <div class="cal-legend" style="margin:0"><span class="spill full">FULL</span><span class="spill open">有空位</span><span class="spill ask">先询问</span><span class="spill lv">请假</span><span class="spill hol" style="background:var(--upt-soft)">全组假期</span><span class="help" id="slotLoad"></span></div>
@@ -2250,6 +2274,32 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const saved = cacheGet("o:" + state.oMonth); if (saved && saved.month === state.oMonth) renderOut(saved);
     try { const d = await call("outList", { month: state.oMonth }); cacheSet("o:" + d.month, d); renderOut(d); } catch (e) { if (!saved) $("oSummary").textContent = errMsg(e); }
   }
+  /* ---------- AI Video 排期: open video slots per week (numbers only) ---------- */
+  function renderAvail(d) {
+    const box = $("avBody"); box.textContent = "";
+    if (!d || !d.weeks) { box.appendChild(el("p", { class: "help" }, "载入中…")); return; }
+    const md = (iso) => Number(iso.slice(8, 10)) + "/" + Number(iso.slice(5, 7));
+    const left = (w) => Math.max(0, w.cap - w.booked);
+    const best = d.weeks.find((w) => left(w) > 0);
+    const head = el("div", { class: "av-best" + (best ? "" : " none") });
+    head.appendChild(el("small", null, best ? "最快可以排" : "接下来 6 个礼拜"));
+    head.appendChild(el("b", null, best ? (best === d.weeks[0] ? "这个礼拜" : md(best.week) + " 那一周") + " · 还有 " + left(best) + " 个位子" : "都排满了"));
+    box.appendChild(head);
+    const grid = el("div", { class: "av-grid" });
+    d.weeks.forEach((w, i) => {
+      const n = left(w), full = w.cap > 0 && n === 0, off = w.cap === 0;
+      const c = el("div", { class: "av-wk" + (w === best ? " best" : "") + (full ? " full" : "") + (off ? " off" : "") });
+      const when = el("div", { class: "when" }); when.appendChild(el("b", null, i === 0 ? "本周" : i === 1 ? "下周" : "")); when.appendChild(document.createTextNode(md(w.week) + " – " + md(w.fri))); c.appendChild(when);
+      const bar = el("div", { class: "av-bar" }), fill = el("i"); fill.style.width = (w.cap ? Math.min(100, Math.round(w.booked / w.cap * 100)) : 0) + "%"; bar.appendChild(fill); c.appendChild(bar);
+      c.appendChild(el("div", { class: "left" }, off ? "这周不接" : full ? "已满 " + w.booked + "/" + w.cap : "剩 " + n + " 个"));
+      grid.appendChild(c);
+    });
+    box.appendChild(grid);
+  }
+  async function loadAvail() {
+    const saved = cacheGet("va"); if (saved) renderAvail(saved);
+    try { const d = await call("vdAvail"); cacheSet("va", d); renderAvail(d); } catch (e) { if (!saved) $("avBody").textContent = errMsg(e); }
+  }
   // Background fetch so the Outsource page opens with data already there.
   async function prefetchOut() {
     const m = state.oMonth || today().slice(0, 7);
@@ -2314,9 +2364,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   });
 
   /* ---------- views ---------- */
-  const VIEWS = { daily: ["vDaily", "每日登记"], mine: ["vMine", "我的Case总数"], video: ["vVideo", "Video"], profile: ["vProfile", "My Profile"], slot: ["vSlot", "Slot"], out: ["vOut", "Outsource"], calendar: ["vCal", "请假 / 假期"], stats: ["vStats", "本月统计"], list: ["vList", "本月明细"], team: ["vTeam", "成员"] };
+  const VIEWS = { daily: ["vDaily", "每日登记"], mine: ["vMine", "我的Case总数"], video: ["vVideo", "Video"], profile: ["vProfile", "My Profile"], slot: ["vSlot", "Design Slot"], avail: ["vAvail", "AI Video 排期"], out: ["vOut", "Outsource"], calendar: ["vCal", "请假 / 假期"], stats: ["vStats", "本月统计"], list: ["vList", "本月明细"], team: ["vTeam", "成员"] };
   function setView(v, fromHash) {
-    if (state.viewer && v !== "out") v = "slot";
+    if (state.viewer && v !== "out" && v !== "avail") v = "slot";
     if (v === "out" && !state.viewer && !canSee()) v = "daily";
     if (v === "video" && !state.videoTeam) v = "daily";
     if (state.watch && (!VIEWS[v] || v === "profile" || v === "mine")) v = "stats";   // read-only accounts land on 本月统计
@@ -2331,11 +2381,13 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     $("viewTeam").hidden = v !== "team";
     $("viewSlot").hidden = v !== "slot";
     $("viewOut").hidden = v !== "out";
+    $("viewAvail").hidden = v !== "avail";
     $("viewStats").hidden = !(v === "stats" || v === "list");
     $("paneStats").hidden = v !== "stats";
     $("paneList").hidden = v !== "list";
-    $("monthBar").hidden = v === "daily" || v === "team" || v === "slot" || v === "out" || v === "profile" || v === "video";
+    $("monthBar").hidden = v === "daily" || v === "team" || v === "slot" || v === "avail" || v === "out" || v === "profile" || v === "video";
     if (v === "out") loadOut();
+    if (v === "avail") loadAvail();
     if (v === "video") loadVideos();
     if (v === "slot") loadSlots();
     if (v === "team") loadTeam();
@@ -3414,7 +3466,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     db = true;
     if (started) { const want = location.hash.slice(1) || state.view; if (state.viewer) setView(want, true); else { renderAll(); setView(want, true); if (state.videoTeam && !state.vd.open.length) loadVideoOpen(); } return; }   // fresh boot after the saved one
     started = true;
-    if (state.viewer) { setView(location.hash.slice(1) === "out" ? "out" : "slot", true); ready(); setInterval(() => { if (!document.hidden) loadSlots(true); }, 60000); return; }
+    if (state.viewer) { const h0 = location.hash.slice(1); setView(h0 === "out" || h0 === "avail" ? h0 : "slot", true); ready(); setInterval(() => { if (!document.hidden) loadSlots(true); }, 60000); return; }
     ensureMonths();
     renderAll();
     setView(location.hash.slice(1), true);   // re-apply now that admin status is known
