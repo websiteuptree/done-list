@@ -676,21 +676,27 @@ html.ready .boot-load { display: none; }
 button.vd-kind { border: none; padding: 0; cursor: pointer; }
 button.vd-kind:hover { filter: brightness(1.08); box-shadow: 0 0 0 2px #fff, 0 0 0 3px currentColor; }
 .vd-pop .kind-opt { display: flex; gap: 6px; }
-.av-best { border-radius: 14px; padding: 16px 18px; margin: 4px 0 16px; background: var(--ok-soft); color: var(--ok); }
-.av-best.none { background: var(--bad-soft); color: var(--bad); }
-.av-best small { display: block; font-size: 13px; font-weight: 600; opacity: .85; }
-.av-best b { display: block; font-size: 24px; font-weight: 800; margin-top: 2px; }
-.av-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.av-wk { border: 1px solid var(--edge); border-radius: 12px; padding: 12px 14px; background: #fff; }
-.av-wk.best { border: 2px solid var(--ok); }
+.av-best { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-radius: 16px; padding: 20px 24px; margin: 6px 0 16px; background: var(--ink); color: #fff; box-shadow: 0 14px 34px rgba(0, 0, 0, .16); }
+.av-best small { display: block; font-size: 13px; color: rgba(255, 255, 255, .62); }
+.av-best b { display: block; font-size: 42px; font-weight: 300; letter-spacing: -.03em; line-height: 1.05; color: var(--upt); margin-top: 6px; }
+.av-best .mix { display: flex; gap: 14px; align-items: center; font-size: 14px; color: rgba(255, 255, 255, .8); }
+.av-best .mix .vd-kind { margin: 0 6px 0 0; }
+.av-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.av-wk { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; background: #fff; display: flex; flex-direction: column; gap: 8px; }
+.av-wk.best { border: 2px solid var(--upt); padding: 13px 15px; }
 .av-wk .when { font-size: 13px; color: var(--muted); }
-.av-wk .when b { color: var(--ink); font-weight: 700; margin-right: 4px; }
-.av-bar { height: 7px; border-radius: 4px; background: #EFEEE9; margin: 10px 0 8px; overflow: hidden; }
-.av-bar i { display: block; height: 100%; border-radius: 4px; background: var(--ok); }
-.av-wk.full .av-bar i { background: var(--bad); }
-.av-wk .left { font-size: 15px; font-weight: 800; color: var(--ok); }
-.av-wk.full .left { color: var(--bad); }
-.av-wk.off .left { color: var(--muted); }
+.av-wk .when b { color: var(--fg); font-weight: 700; margin-right: 4px; }
+.av-wk .num { font-size: 34px; font-weight: 300; letter-spacing: -.03em; line-height: 1; color: var(--fg); }
+.av-wk .num small { font-size: 13px; font-weight: 500; letter-spacing: 0; color: var(--muted); margin-left: 4px; }
+.av-wk.full .num { font-size: 22px; font-weight: 700; color: var(--prog); letter-spacing: 0; }
+.av-wk.off .num { font-size: 22px; font-weight: 700; color: var(--muted); letter-spacing: 0; }
+.av-bar { height: 6px; border-radius: 3px; background: #F1F0EA; overflow: hidden; }
+.av-bar i { display: block; height: 100%; border-radius: 3px; background: var(--upt); }
+.av-wk.full .av-bar i { background: var(--ink); }
+.av-mix { display: flex; gap: 12px; align-items: center; font-size: 13px; color: var(--muted); }
+.av-mix span { display: inline-flex; align-items: center; gap: 5px; }
+.av-mix .vd-kind { margin: 0; width: 20px; height: 20px; font-size: 10px; }
+.av-mix b { color: var(--fg); font-weight: 700; }
 html.watch .panel.entry, html.watch #vProfile, html.watch #vMine, html.watch .vd-wk-edit, html.watch #vdNew, html.watch #vdQuotaBtn, html.watch .vd-ed, html.watch .vdlist td:last-child .undo { display: none !important; }
 html.watch .vdlist .cell, html.watch .vdlist .vd-desbtn, html.watch .vdlist button.vd-kind { pointer-events: none; }
 .vd-stat.kind.on { outline: 2px solid #2F6DB5; }
@@ -2280,18 +2286,32 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     if (!d || !d.weeks) { box.appendChild(el("p", { class: "help" }, "载入中…")); return; }
     const md = (iso) => Number(iso.slice(8, 10)) + "/" + Number(iso.slice(5, 7));
     const left = (w) => Math.max(0, w.cap - w.booked);
+    // AI / 剪 badges with how many of each are booked that week (same squares as the Video page)
+    const mix = (w, cls) => {
+      const m = el("div", { class: cls });
+      [["AI", "", w.ai], ["剪", " edit", w.edit]].forEach(([t, k, n]) => { const s = el("span"); s.appendChild(el("span", { class: "vd-kind" + k }, t)); s.appendChild(el("b", null, String(n || 0))); m.appendChild(s); });
+      return m;
+    };
     const best = d.weeks.find((w) => left(w) > 0);
-    const head = el("div", { class: "av-best" + (best ? "" : " none") });
-    head.appendChild(el("small", null, best ? "最快可以排" : "接下来 6 个礼拜"));
-    head.appendChild(el("b", null, best ? (best === d.weeks[0] ? "这个礼拜" : md(best.week) + " 那一周") + " · 还有 " + left(best) + " 个位子" : "都排满了"));
+    const head = el("div", { class: "av-best" });
+    const hl = el("div");
+    hl.appendChild(el("small", null, best ? "最快可以排" : "接下来 6 个礼拜"));
+    hl.appendChild(el("b", null, best ? (best === d.weeks[0] ? "这个礼拜" : md(best.week) + " 那一周") + " · 剩 " + left(best) + " 个" : "都排满了"));
+    head.appendChild(hl);
+    if (best) { const r = el("div"); r.appendChild(el("small", { style: "margin-bottom:8px" }, "那一周已排")); r.appendChild(mix(best, "mix")); head.appendChild(r); }
     box.appendChild(head);
     const grid = el("div", { class: "av-grid" });
     d.weeks.forEach((w, i) => {
       const n = left(w), full = w.cap > 0 && n === 0, off = w.cap === 0;
       const c = el("div", { class: "av-wk" + (w === best ? " best" : "") + (full ? " full" : "") + (off ? " off" : "") });
       const when = el("div", { class: "when" }); when.appendChild(el("b", null, i === 0 ? "本周" : i === 1 ? "下周" : "")); when.appendChild(document.createTextNode(md(w.week) + " – " + md(w.fri))); c.appendChild(when);
+      const num = el("div", { class: "num" });
+      if (off) num.textContent = "这周不接";
+      else if (full) num.textContent = "已满" + (w.booked > w.cap ? "（超 " + (w.booked - w.cap) + "）" : "");
+      else { num.appendChild(document.createTextNode(String(n))); num.appendChild(el("small", null, "个位子 / " + w.cap)); }
+      c.appendChild(num);
       const bar = el("div", { class: "av-bar" }), fill = el("i"); fill.style.width = (w.cap ? Math.min(100, Math.round(w.booked / w.cap * 100)) : 0) + "%"; bar.appendChild(fill); c.appendChild(bar);
-      c.appendChild(el("div", { class: "left" }, off ? "这周不接" : full ? "已满 " + w.booked + "/" + w.cap : "剩 " + n + " 个"));
+      c.appendChild(mix(w, "av-mix"));
       grid.appendChild(c);
     });
     box.appendChild(grid);
