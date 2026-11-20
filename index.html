@@ -681,20 +681,31 @@ button.vd-kind:hover { filter: brightness(1.08); box-shadow: 0 0 0 2px #fff, 0 0
 .av-best .k .vd-kind { margin: 0; }
 .av-best b { display: block; font-size: 36px; font-weight: 300; letter-spacing: -.03em; line-height: 1.1; color: var(--upt); margin-top: 8px; }
 .av-best b.none { color: #fff; opacity: .7; }
-.av-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
-.av-wk { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; background: #fff; display: flex; flex-direction: column; gap: 10px; }
-.av-wk .when { font-size: 13px; color: var(--muted); }
-.av-wk .when b { color: var(--fg); font-weight: 700; margin-right: 4px; }
-.av-row { display: grid; grid-template-columns: 22px 1fr; gap: 4px 10px; align-items: center; }
-.av-row .vd-kind { margin: 0; width: 22px; height: 22px; font-size: 10.5px; grid-row: span 2; align-self: start; margin-top: 2px; }
-.av-row .num { font-size: 26px; font-weight: 300; letter-spacing: -.03em; line-height: 1; color: var(--fg); }
+.av-grid { display: flex; flex-direction: column; gap: 8px; }
+.av-wk { display: grid; grid-template-columns: 170px minmax(0, 1fr) minmax(0, 1fr); gap: 10px 28px; align-items: center; border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; background: #fff; }
+.av-wk .when { font-size: 13.5px; color: var(--muted); white-space: nowrap; }
+.av-wk .when b { color: var(--fg); font-weight: 700; margin-right: 6px; }
+.av-row { display: grid; grid-template-columns: 22px 118px minmax(40px, 1fr); gap: 10px; align-items: center; min-width: 0; }
+.av-row .vd-kind { margin: 0; width: 22px; height: 22px; font-size: 10.5px; }
+.av-row .num { font-size: 24px; font-weight: 300; letter-spacing: -.03em; line-height: 1; color: var(--fg); white-space: nowrap; }
 .av-row .num small { font-size: 12.5px; font-weight: 500; letter-spacing: 0; color: var(--muted); margin-left: 4px; }
-.av-row.full .num { font-size: 16px; font-weight: 700; letter-spacing: 0; color: var(--prog); line-height: 26px; }
-.av-row.off .num { font-size: 14px; font-weight: 600; letter-spacing: 0; color: var(--muted); line-height: 26px; }
+.av-row.full .num { font-size: 15px; font-weight: 700; letter-spacing: 0; color: var(--prog); line-height: 24px; }
+.av-row.off .num { font-size: 14px; font-weight: 600; letter-spacing: 0; color: var(--muted); line-height: 24px; }
 .av-row.best .num { color: var(--upt-text); font-weight: 400; }
 .av-bar { height: 5px; border-radius: 3px; background: #F1F0EA; overflow: hidden; }
 .av-bar i { display: block; height: 100%; border-radius: 3px; background: var(--upt); }
 .av-row.full .av-bar i { background: var(--ink); }
+@media (max-width: 720px) {
+  .av-best { padding: 16px 18px; gap: 14px; }
+  .av-best b { font-size: 26px; }
+  .av-wk { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 16px; padding: 12px 14px; }
+  .av-wk .when { grid-column: 1 / -1; }
+  .av-row { grid-template-columns: 22px minmax(0, 1fr); gap: 6px 8px; }
+  .av-row .av-bar { grid-column: 1 / -1; }
+  .av-row .num { font-size: 20px; }
+  .av-row .num small { font-size: 11.5px; }
+  .av-row.full .num, .av-row.off .num { font-size: 13px; line-height: 20px; }
+}
 html.watch .panel.entry, html.watch #vProfile, html.watch #vMine, html.watch .vd-wk-edit, html.watch #vdNew, html.watch #vdQuotaBtn, html.watch .vd-ed, html.watch .vdlist td:last-child .undo { display: none !important; }
 html.watch .vdlist .cell, html.watch .vdlist .vd-desbtn, html.watch .vdlist button.vd-kind { pointer-events: none; }
 .vd-stat.kind.on { outline: 2px solid #2F6DB5; }
