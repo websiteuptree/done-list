@@ -3048,7 +3048,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         const kv = el("div", { class: "kv" });
         [["总花费", "RM" + fx(c.rm) + "（" + f1(c.credits) + " cr）"], ["使用率", fx(c.useRate) + "%（" + c.gen + " → " + c.kept + "）"],
          ["试错率", fx(c.trialRate) + "%（" + c.discarded + " 弃 + " + c.verified + " 验）"], ["每支成片", "RM" + fx(c.perKept)],
-         ["开始生成", (c.genStart || "—") + (c.genEnd && c.genEnd !== c.genStart ? " → " + c.genEnd : "")], ["账号 · 单价", (c.account || "—") + " · RM" + c.rate + "/cr"]]
+         ["开始生成", (c.genStart || "—") + (c.genEnd && c.genEnd !== c.genStart ? " → " + c.genEnd : "")], ["账号 · 单价", (c.account || "—") + " · RM" + (+Number(c.rate || 0).toFixed(3)) + "/cr" + (String(c.account || "").indexOf("+") >= 0 ? "（混合）" : "")]]
           .forEach(([k, val]) => { kv.appendChild(el("span", null, k)); kv.appendChild(el("span", null, val)); });
         pop.appendChild(kv);
         if (c.specs && c.specs.length) {
