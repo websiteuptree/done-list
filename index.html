@@ -641,7 +641,7 @@ html.ready .boot-load { display: none; }
 .vdlist td:nth-child(3) input.cell { min-width: 108px; }
 .vdlist td:nth-child(5) input.cell { min-width: 108px; }
 .vdlist input[type="date"].cell { min-width: 0; width: 132px; }
-.vdlist { min-width: 1080px; }
+.vdlist { min-width: 1212px; }
 .vdlist input[type="date"].cell { min-width: 128px; color: var(--muted); }
 .vdlist .vd-due.late input.cell { color: var(--bad); font-weight: 800; }
 .vdlist select.cell.vstat { -webkit-appearance: none; appearance: none; width: auto; margin: 0; padding: 4px 26px 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer;
@@ -778,7 +778,13 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
 .vdlist { table-layout: fixed; width: 100%; min-width: 1180px; border-collapse: separate; border-spacing: 0; }
 .vdlist col.c-client { width: 150px; } .vdlist col.c-content { width: 210px; } .vdlist col.c-type { width: 110px; }
 .vdlist col.c-dur { width: 78px; } .vdlist col.c-pic { width: 108px; } .vdlist col.c-des { width: 140px; }
-.vdlist col.c-due { width: 118px; } .vdlist col.c-st { width: 128px; } .vdlist col.c-link { width: 200px; } .vdlist col.c-act { width: 36px; }
+.vdlist col.c-due { width: 118px; } .vdlist col.c-st { width: 128px; } .vdlist col.c-link { width: 200px; } .vdlist col.c-cost { width: 132px; } .vdlist col.c-act { width: 36px; }
+.vd-cost { display: inline-flex; align-items: baseline; gap: 6px; border: 1px solid #E3E0D6; background: #fff; border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; color: var(--fg); }
+.vd-cost b { font-weight: 800; } .vd-cost .u { font-size: 12px; font-weight: 700; color: var(--muted); }
+.vd-cost .u.ok { color: var(--ok); } .vd-cost .u.low { color: var(--bad); }
+.vd-costpop { min-width: 260px; } .vd-costpop .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; margin: 6px 0 10px; }
+.vd-costpop .kv span:nth-child(odd) { color: var(--muted); } .vd-costpop .kv span:nth-child(even) { font-weight: 700; text-align: right; }
+.vd-costpop table { width: 100%; font-size: 12px; border-collapse: collapse; } .vd-costpop th, .vd-costpop td { padding: 3px 4px; border-bottom: 1px solid var(--line); text-align: right; } .vd-costpop th:first-child, .vd-costpop td:first-child { text-align: left; }
 .vdlist thead th { font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #9A988F; padding: 0 10px 10px; border-bottom: 1px solid var(--line); }
 .vdlist tbody td { padding: 0 10px; height: 50px; border-bottom: 1px solid #F0EEE8; overflow: hidden; }
 .vdlist tbody tr:not(.vd-week):not(.vd-qedit):hover td { background: #FBFAF6; }
@@ -1108,7 +1114,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         <div class="toolbar"><span class="help" id="vdLoad"></span><button type="button" class="plainbtn" id="vdFoldAll">全部收起</button><button type="button" class="plainbtn" id="vdQuotaBtn" hidden>每周名额</button><button type="button" class="submit vd-new" id="vdNew" hidden>+ 开新单</button></div>
       </div>
       <div class="vd-form" id="vdForm" hidden></div>
-      <div class="scroll"><table class="list vdlist"><colgroup><col class="c-client"><col class="c-content"><col class="c-type"><col class="c-dur"><col class="c-pic"><col class="c-des"><col class="c-due"><col class="c-st"><col class="c-link"><col class="c-act"></colgroup><thead><tr><th>Client / Project</th><th>Content</th><th>Video Type</th><th>Duration</th><th>PIC</th><th>Designer</th><th>Due</th><th>Status</th><th>Link</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
+      <div class="scroll"><table class="list vdlist"><colgroup><col class="c-client"><col class="c-content"><col class="c-type"><col class="c-dur"><col class="c-pic"><col class="c-des"><col class="c-due"><col class="c-st"><col class="c-link"><col class="c-cost"><col class="c-act"></colgroup><thead><tr><th>Client / Project</th><th>Content</th><th>Video Type</th><th>Duration</th><th>PIC</th><th>Designer</th><th>Due</th><th>Status</th><th>Link</th><th>成本</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
       <p class="empty" id="vdEmpty" hidden>这个月还没有 Video 单。</p>
     </div>
     <datalist id="vdTypeList"></datalist><datalist id="vdMkList"></datalist>
@@ -2724,6 +2730,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         state.vd.data[res.month] = (res.rows || []).map((r) => byId.has(r.id) ? Object.assign(byId.get(r.id), r) : r);
       } else state.vd.data[res.month] = res.rows || [];
     }
+    if (res.month && res.costs) { state.vd.costs = state.vd.costs || {}; (res.rows || []).forEach((r) => { if (res.costs[r.id]) state.vd.costs[r.id] = res.costs[r.id]; else delete state.vd.costs[r.id]; }); }
     state.vd.open = res.open || state.vd.open;
     if (res.quota) state.vd.quota = res.quota;
     if ("notify" in res) state.vd.notify = !!res.notify;
@@ -3011,14 +3018,46 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     });
     c8.appendChild(ss); tr.appendChild(c8);
     tr.appendChild(vdLinkCell(v, "link", "linkText", "成片"));
+    tr.appendChild(vdCostCell(v));
     const act = el("td");
     const b = el("button", { type: "button", class: "undo", title: "全部栏位、备注、删除" }, "⋯"); b.addEventListener("click", () => openVdForm(v)); act.appendChild(b);
     tr.appendChild(act);
     return tr;
  }
+  // 成本：/ai-video-cost-report 跑完自动写进来；点开看五样数字和按规格拆的表。
+  function vdCostCell(v) {
+    const td = el("td", { class: "vd-costcell" }), c = (state.vd.costs || {})[v.id];
+    if (!c) { td.appendChild(el("span", { class: "help", title: "跑 /ai-video-cost-report 后会自动写进来" }, "—")); return td; }
+    const fx = (x) => Number(x || 0).toFixed(2), f1 = (x) => Number(x || 0).toFixed(1);
+    const b = el("button", { type: "button", class: "vd-cost", title: "点开看成本明细" });
+    b.appendChild(el("b", null, "RM" + fx(c.rm)));
+    b.appendChild(el("span", { class: "u " + (c.useRate >= 70 ? "ok" : c.useRate < 50 ? "low" : "") }, Math.round(c.useRate) + "%"));
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      vdPop(td, (pop) => {
+        pop.classList.add("vd-costpop");
+        pop.appendChild(el("div", { class: "help" }, (c.project || v.client) + (c.who ? " · " + c.who + " 报告" : "")));
+        const kv = el("div", { class: "kv" });
+        [["总花费", "RM" + fx(c.rm) + "（" + f1(c.credits) + " cr）"], ["使用率", fx(c.useRate) + "%（" + c.gen + " → " + c.kept + "）"],
+         ["试错率", fx(c.trialRate) + "%（" + c.discarded + " 弃 + " + c.verified + " 验）"], ["每支成片", "RM" + fx(c.perKept)],
+         ["开始生成", (c.genStart || "—") + (c.genEnd && c.genEnd !== c.genStart ? " → " + c.genEnd : "")], ["账号 · 单价", (c.account || "—") + " · RM" + c.rate + "/cr"]]
+          .forEach(([k, val]) => { kv.appendChild(el("span", null, k)); kv.appendChild(el("span", null, val)); });
+        pop.appendChild(kv);
+        if (c.specs && c.specs.length) {
+          const t = el("table"), h = el("tr");
+          ["规格", "生成", "留用", "Credits"].forEach((x) => h.appendChild(el("th", null, x))); t.appendChild(h);
+          c.specs.forEach((s) => { const r = el("tr"); [s.spec, s.gen, s.kept, f1(s.credits)].forEach((x) => r.appendChild(el("td", null, String(x)))); t.appendChild(r); });
+          pop.appendChild(t);
+        }
+        if (c.note) pop.appendChild(el("div", { class: "help" }, c.note));
+      });
+    });
+    td.appendChild(b);
+    return td;
+  }
   // A designer updates their own job: status, duration, final link.
   function vdUpdateRow(v) {
-    const tr = el("tr", { class: "vd-upd" }), td = el("td", { colspan: "11" }); tr.appendChild(td);
+    const tr = el("tr", { class: "vd-upd" }), td = el("td", { colspan: "12" }); tr.appendChild(td);
     const f = el("div", { class: "edit-form" });
     const two = el("div", { class: "two" });
     const sl = el("label", null, "Status"), ss = el("select"); Object.keys(VSTATUS).forEach((k) => ss.appendChild(el("option", { value: k }, VSTATUS[k]))); ss.value = v.status; sl.appendChild(ss);
@@ -3193,7 +3232,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     return b;
   }
   function vdWeekHead(w, weekRows, gi, nShown) {
-    const tr = el("tr", { class: "vd-week" + (vdIsShut(w) ? " shut" : "") }), td = el("td", { colspan: "10" }); tr.appendChild(td);
+    const tr = el("tr", { class: "vd-week" + (vdIsShut(w) ? " shut" : "") }), td = el("td", { colspan: "11" }); tr.appendChild(td);
     const wrap = el("div", { class: "vd-wk" });
     if (w === "none") { wrap.appendChild(vdWeekTitle(w, "还没定 Due", "", nShown)); td.appendChild(wrap); return tr; }
     const sun = addDays(w, 6), md = (d) => Number(d.slice(8, 10)) + "/" + Number(d.slice(5, 7));
@@ -3259,7 +3298,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     return l;
   }
   function vdQuotaRow(w) {
-    const tr = el("tr", { class: "vd-qedit" }), td = el("td", { colspan: "10" }); tr.appendChild(td);
+    const tr = el("tr", { class: "vd-qedit" }), td = el("td", { colspan: "11" }); tr.appendChild(td);
     const box = el("div", { class: "vd-qbox" });
     box.appendChild(el("span", { class: "help" }, "这周每人接几支（空白 = 用每周默认）"));
     const q = state.vd.quota || { def: {}, weeks: {} };
