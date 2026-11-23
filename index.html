@@ -2903,22 +2903,26 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     ed.addEventListener("click", (e) => {
       e.stopPropagation();
       vdPop(td, (pop) => {
-        const u = el("input", { type: "url", placeholder: "贴上链接 https://…", "aria-label": "链接" }); u.value = v[urlKey] || "";
+        const isContent = urlKey === "contentUrl";   // Content: a link, or where the script came (e.g. WhatsApp)
+        const u = el("input", { type: isContent ? "text" : "url", placeholder: isContent ? "贴上链接，或写「WhatsApp」" : "贴上链接 https://…", "aria-label": "链接" }); u.value = v[urlKey] || "";
         const n = el("input", { type: "text", maxlength: "200", "aria-label": "显示名字", placeholder: fallback === "Script" ? "Content 名字（选填，留空就用 Drive 文件名）" : "显示名字（选填，留空就用 Drive 文件名）" }); n.value = v[textKey] || "";
         const fin = urlKey === "link";   // the final video link: type + length come with it
         const st = el("span", { class: "status" });
         const ok = el("button", { type: "button", class: "save" }, "保存");
         let ff = null;
         ok.addEventListener("click", () => {
-          if (u.value.trim() && !safeUrl(u.value.trim())) { st.textContent = "链接要用 https:// 开头。"; st.className = "status bad"; return; }
+          if (!isContent && u.value.trim() && !safeUrl(u.value.trim())) { st.textContent = "链接要用 https:// 开头。"; st.className = "status bad"; return; }
           if (ff && u.value.trim() && !ff.check(st)) return;
-          const f = Object.assign({ [textKey]: n.value.trim(), [urlKey]: u.value.trim() }, ff && u.value.trim() ? ff.fields() : {});
+          let f = Object.assign({ [textKey]: n.value.trim(), [urlKey]: u.value.trim() }, ff && u.value.trim() ? ff.fields() : {});
+          if (isContent && f.contentUrl && !safeUrl(f.contentUrl)) f = { content: f.content || f.contentUrl, contentUrl: "" };   // text, not a link
           vdPopOpen = null; td.querySelector(".vd-pop").remove();
           const chip = vdChip(f[urlKey], f[textKey] || (f[urlKey] ? "读取名字…" : ""), fallback);
           if (td.firstChild && td.firstChild.classList && td.firstChild.classList.contains("vd-ed")) td.insertBefore(chip, td.firstChild); else td.replaceChild(chip, td.firstChild);
           vdSave(v, f, td).then(() => renderVideos());   // re-draw so the Drive file name shows
         });
-        pop.appendChild(u); pop.appendChild(n);
+        pop.appendChild(u);
+        if (isContent) { const q = el("button", { type: "button", class: "chip small", style: "align-self:flex-start" }, "文案在 WhatsApp"); q.addEventListener("click", () => { u.value = ""; n.value = "WhatsApp"; ok.click(); }); pop.appendChild(q); }
+        pop.appendChild(n);
         if (fin) ff = vdFinishFields(pop, v);
         [u, n].concat(ff ? [ff.ty, ff.du] : []).forEach((i) => i.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); ok.click(); } if (e.key === "Escape") vdClosePop(); }));
         const row = el("div", { class: "row2" }); row.appendChild(ok); row.appendChild(st); pop.appendChild(row);
@@ -3040,7 +3044,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     field("client", "Client / Project *", "text", { maxlength: "80" });
     field("marketer", "PIC（Marketer）", "text", { maxlength: "40", list: "vdMkList" });
     field("content", "Content", "text", { maxlength: "200", placeholder: "例如：ASPEN VERSA VIDEO IDEA 1" });
-    field("contentUrl", "Content 链接（Script / Doc）", "url", { placeholder: "https://docs.google.com/…" });
+    field("contentUrl", "Content 链接（或写在哪里收到，例如 WhatsApp）", "text", { placeholder: "https://docs.google.com/… 或 WhatsApp" });
+    { const q = el("button", { type: "button", class: "chip small", style: "margin-top:6px" }, "文案在 WhatsApp"); q.addEventListener("click", () => { inputs.contentUrl.value = "WhatsApp"; }); inputs.contentUrl.parentNode.appendChild(q); }
     field("videoType", "Video Type", "text", { maxlength: "40", list: "vdTypeList", placeholder: "例如：剧情+Sale" });
     field("duration", "Duration", "text", { maxlength: "20", placeholder: "例如 1m05s" });
     field("received", "Received Date", "date");
@@ -3075,7 +3080,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     save.addEventListener("click", async () => {
       const fields = {}; Object.keys(inputs).forEach((k) => { fields[k] = inputs[k].value.trim(); });
       if (!fields.client) { st.textContent = "请填 Client / Project。"; st.className = "status bad"; inputs.client.focus(); return; }
-      for (const k of ["contentUrl", "link"]) if (fields[k] && !safeUrl(fields[k])) { st.textContent = "链接要用 https:// 开头。"; st.className = "status bad"; inputs[k].focus(); return; }
+      if (fields.link && !safeUrl(fields.link)) { st.textContent = "成片链接要用 https:// 开头。"; st.className = "status bad"; inputs.link.focus(); return; }
+      if (fields.contentUrl && !safeUrl(fields.contentUrl)) { if (!fields.content) fields.content = fields.contentUrl; fields.contentUrl = ""; }   // e.g. WhatsApp: kept as the Content text
       const finishing = (fields.status === "done" && v.status !== "done") || (fields.link && fields.link !== (v.link || ""));
       if (finishing && (!fields.videoType || !fields.duration)) { st.textContent = "交成片要一起填 Video 类型和时长。"; st.className = "status bad"; inputs[fields.videoType ? "duration" : "videoType"].focus(); return; }
       fields.marketer = canon(fields.marketer, state.marketers || [], state.aliases || {});
