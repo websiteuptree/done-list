@@ -2747,7 +2747,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   }
   function vdChip(url, text, fallback) {
     const u = safeUrl(url), label = String(text || "").trim() || fallback;
-    if (!u) return text ? el("span", { class: "vchip plain", title: text }, el("span", null, text)) : el("span", { class: "help" }, "—");
+    if (!u) { if (!text) return el("span", { class: "help" }, "—"); const c = el("span", { class: "vchip plain", title: text }); c.appendChild(el("span", null, text)); return c; }
     const a = el("a", { class: "vchip", href: u, target: "_blank", rel: "noopener", title: label });
     const ic = el("i"); ic.innerHTML = CHIP_ICONS[chipKind(u, text)]; a.appendChild(ic);
     a.appendChild(el("span", null, label));
