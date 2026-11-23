@@ -638,10 +638,7 @@ html.ready .boot-load { display: none; }
 .vdlist input.cell::placeholder { color: #B5B2A8; }
 .vdlist .vd-client input.cell { font-weight: 700; min-width: 110px; }
 .vdlist .vd-dur input.cell { min-width: 58px; }
-.vdlist td:nth-child(3) input.cell { min-width: 108px; }
-.vdlist td:nth-child(5) input.cell { min-width: 108px; }
 .vdlist input[type="date"].cell { min-width: 0; width: 132px; }
-.vdlist { min-width: 1212px; }
 .vdlist input[type="date"].cell { min-width: 128px; color: var(--muted); }
 .vdlist .vd-due.late input.cell { color: var(--bad); font-weight: 800; }
 .vdlist select.cell.vstat { -webkit-appearance: none; appearance: none; width: auto; margin: 0; padding: 4px 26px 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer;
@@ -775,10 +772,15 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
 
 
 /* ===== AI Video table, tidy: fixed columns, quiet cells, one clear header per week ===== */
-.vdlist { table-layout: fixed; width: 100%; min-width: 1180px; border-collapse: separate; border-spacing: 0; }
-.vdlist col.c-client { width: 150px; } .vdlist col.c-content { width: 210px; } .vdlist col.c-type { width: 110px; }
-.vdlist col.c-dur { width: 78px; } .vdlist col.c-pic { width: 108px; } .vdlist col.c-des { width: 140px; }
-.vdlist col.c-due { width: 118px; } .vdlist col.c-st { width: 128px; } .vdlist col.c-link { width: 200px; } .vdlist col.c-cost { width: 132px; } .vdlist col.c-act { width: 36px; }
+.vdlist { table-layout: fixed; width: 100%; min-width: 1020px; border-collapse: separate; border-spacing: 0; }
+.vdlist col.c-client { width: 130px; } .vdlist col.c-type { width: 108px; } .vdlist col.c-des { width: 134px; }   /* Content 不设宽：吃掉剩下的空间 */
+.vdlist col.c-due { width: 118px; } .vdlist col.c-st { width: 120px; } .vdlist col.c-link { width: 144px; } .vdlist col.c-cost { width: 112px; } .vdlist col.c-act { width: 36px; }
+/* 两格叠一格（类型/时长、设计师/PIC），整张表一屏放得下 */
+.vdlist .vd-stack input.cell { padding-top: 3px; padding-bottom: 3px; }
+.vdlist .vd-stack input.cell.sub { font-size: 12px; color: var(--muted); padding-top: 1px; padding-bottom: 1px; }
+.vd-pic { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+.vd-pic .k { flex: none; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; color: #B5B2A8; }
+.vdlist .vd-pic input.cell.sub { margin: 0; width: auto; flex: 1; min-width: 0; }
 .vd-cost { display: inline-flex; align-items: baseline; gap: 6px; border: 1px solid #E3E0D6; background: #fff; border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; color: var(--fg); }
 .vd-cost b { font-weight: 800; } .vd-cost .u { font-size: 12px; font-weight: 700; color: var(--muted); }
 .vd-cost .u.ok { color: var(--ok); } .vd-cost .u.low { color: var(--bad); }
@@ -1114,7 +1116,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         <div class="toolbar"><span class="help" id="vdLoad"></span><button type="button" class="plainbtn" id="vdFoldAll">全部收起</button><button type="button" class="plainbtn" id="vdQuotaBtn" hidden>每周名额</button><button type="button" class="submit vd-new" id="vdNew" hidden>+ 开新单</button></div>
       </div>
       <div class="vd-form" id="vdForm" hidden></div>
-      <div class="scroll"><table class="list vdlist"><colgroup><col class="c-client"><col class="c-content"><col class="c-type"><col class="c-dur"><col class="c-pic"><col class="c-des"><col class="c-due"><col class="c-st"><col class="c-link"><col class="c-cost"><col class="c-act"></colgroup><thead><tr><th>Client / Project</th><th>Content</th><th>Video Type</th><th>Duration</th><th>PIC</th><th>Designer</th><th>Due</th><th>Status</th><th>Link</th><th>成本</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
+      <div class="scroll"><table class="list vdlist"><colgroup><col class="c-client"><col class="c-content"><col class="c-type"><col class="c-des"><col class="c-due"><col class="c-st"><col class="c-link"><col class="c-cost"><col class="c-act"></colgroup><thead><tr><th>Client / Project</th><th>Content</th><th>Type / Duration</th><th>Designer / PIC</th><th>Due</th><th>Status</th><th>Link</th><th>成本</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
       <p class="empty" id="vdEmpty" hidden>这个月还没有 Video 单。</p>
     </div>
     <datalist id="vdTypeList"></datalist><datalist id="vdMkList"></datalist>
@@ -2980,11 +2982,11 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     cl.appendChild(kb);
     cl.appendChild(vdCellInput(v, "client", { maxlength: "80" }, c1)); c1.appendChild(cl); tr.appendChild(c1);
     tr.appendChild(vdLinkCell(v, "contentUrl", "content", "Script"));
-    const c3 = el("td"); c3.appendChild(vdCellInput(v, "videoType", { maxlength: "40", list: "vdTypeList", placeholder: "—" }, c3)); tr.appendChild(c3);
-    const c4 = el("td", { class: "vd-dur" }); c4.appendChild(vdCellInput(v, "duration", { maxlength: "20", placeholder: "—" }, c4)); tr.appendChild(c4);
-    const c5 = el("td"); c5.appendChild(vdCellInput(v, "marketer", { maxlength: "40", list: "vdMkList", placeholder: "—" }, c5)); tr.appendChild(c5);
+    const c3 = el("td", { class: "vd-stack" });   // 类型在上、时长在下
+    c3.appendChild(vdCellInput(v, "videoType", { maxlength: "40", list: "vdTypeList", placeholder: "类型 —", title: "Video Type" }, c3));
+    c3.appendChild(vdCellInput(v, "duration", { class: "cell sub", maxlength: "20", placeholder: "时长 —", title: "Duration" }, c3)); tr.appendChild(c3);
     // designers: click to pick (several allowed); newly picked people get an email
-    const c6 = el("td", { class: "vd-descell" });
+    const c6 = el("td", { class: "vd-descell vd-stack" });
     const db6 = el("button", { type: "button", class: "vd-desbtn", title: "选设计师" }); db6.appendChild(vdDesigners(v)); c6.appendChild(db6);
     db6.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -3002,6 +3004,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         const done = el("button", { type: "button", class: "save" }, "好"); done.addEventListener("click", vdClosePop); pop.appendChild(done);
       }, () => { if (picked.join("、") !== start) vdSave(v, { designer: picked }, c6); });
     });
+    const pic = el("div", { class: "vd-pic" }); pic.appendChild(el("span", { class: "k" }, "PIC"));   // 设计师在上、PIC 在下
+    pic.appendChild(vdCellInput(v, "marketer", { class: "cell sub", maxlength: "40", list: "vdMkList", placeholder: "—", title: "PIC" }, c6)); c6.appendChild(pic);
     tr.appendChild(c6);
     const late = v.status !== "done" && v.due && v.due < t;
     const c7 = el("td", { class: "vd-due" + (late ? " late" : "") });
@@ -3057,7 +3061,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   }
   // A designer updates their own job: status, duration, final link.
   function vdUpdateRow(v) {
-    const tr = el("tr", { class: "vd-upd" }), td = el("td", { colspan: "12" }); tr.appendChild(td);
+    const tr = el("tr", { class: "vd-upd" }), td = el("td", { colspan: "9" }); tr.appendChild(td);
     const f = el("div", { class: "edit-form" });
     const two = el("div", { class: "two" });
     const sl = el("label", null, "Status"), ss = el("select"); Object.keys(VSTATUS).forEach((k) => ss.appendChild(el("option", { value: k }, VSTATUS[k]))); ss.value = v.status; sl.appendChild(ss);
@@ -3232,7 +3236,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     return b;
   }
   function vdWeekHead(w, weekRows, gi, nShown) {
-    const tr = el("tr", { class: "vd-week" + (vdIsShut(w) ? " shut" : "") }), td = el("td", { colspan: "11" }); tr.appendChild(td);
+    const tr = el("tr", { class: "vd-week" + (vdIsShut(w) ? " shut" : "") }), td = el("td", { colspan: "9" }); tr.appendChild(td);
     const wrap = el("div", { class: "vd-wk" });
     if (w === "none") { wrap.appendChild(vdWeekTitle(w, "还没定 Due", "", nShown)); td.appendChild(wrap); return tr; }
     const sun = addDays(w, 6), md = (d) => Number(d.slice(8, 10)) + "/" + Number(d.slice(5, 7));
@@ -3298,7 +3302,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     return l;
   }
   function vdQuotaRow(w) {
-    const tr = el("tr", { class: "vd-qedit" }), td = el("td", { colspan: "11" }); tr.appendChild(td);
+    const tr = el("tr", { class: "vd-qedit" }), td = el("td", { colspan: "9" }); tr.appendChild(td);
     const box = el("div", { class: "vd-qbox" });
     box.appendChild(el("span", { class: "help" }, "这周每人接几支（空白 = 用每周默认）"));
     const q = state.vd.quota || { def: {}, weeks: {} };
