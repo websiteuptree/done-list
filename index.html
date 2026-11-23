@@ -982,6 +982,13 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
             <input type="text" id="fMarketer" maxlength="40" autocomplete="off" placeholder="例如：Hew Tung">
           </div>
         </div>
+        <div class="step" id="contentStep">
+          <label class="lbl" for="fContent" id="contentLbl">Content<small>marketer 给的文案 / brief</small></label>
+          <div class="ctl">
+            <input type="text" id="fContent" maxlength="500" autocomplete="off" placeholder="贴文案的链接（Google Doc 等），或写 WhatsApp">
+            <div class="chips" style="margin-top:8px"><button type="button" class="chip small" data-fc="WhatsApp">文案在 WhatsApp</button><button type="button" class="chip small" data-fc="无">没有文案</button></div>
+          </div>
+        </div>
         <div class="step" id="typeStep">
           <div class="lbl">Design Type</div>
           <div class="ctl">
@@ -1407,6 +1414,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   /* ---------- mode ---------- */
   function setMode(m) {
     setTimeout(renderVidPick, 0); setTimeout(updVMeta, 0);
+    $("contentStep").hidden = m === "rev";
+    $("contentLbl").innerHTML = m === "prog" ? "Content<small>marketer 给的文案 / brief（选填，按完成时要填）</small>" : "Content<small>marketer 给的文案 / brief（必填）</small>";
     state.mode = m;
     $("modeNew").setAttribute("aria-pressed", String(m === "new"));
     $("modeRev").setAttribute("aria-pressed", String(m === "rev"));
@@ -1476,6 +1485,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     });
   }
   $("revSearch").addEventListener("input", renderRevList);
+  document.querySelectorAll("[data-fc]").forEach((b) => b.addEventListener("click", () => { $("fContent").value = b.dataset.fc; }));
   $("revManual").addEventListener("click", () => { state.revManualOn = !state.revManualOn; state.revCase = null; setMode("rev"); });
 
   /* ---------- type chips ---------- */
@@ -1586,9 +1596,10 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       if (type === OTHER) { type = $("fTypeOther").value.trim().slice(0, 30) || OTHER; }
       const qty = clampQty($("fQty").value);
       const vType = $("fVType").value.trim(), vDur = $("fVDur").value.trim();
+      if (!$("fContent").value.trim()) { setStatus("请填 Content：marketer 给的文案链接，或按「文案在 WhatsApp」/「没有文案」。", "bad"); $("fContent").focus(); return; }
       if (isAIV(type) && (!vType || !vDur)) { setStatus("AI Video 完成要填 Video 类型和时长。", "bad"); (vType ? $("fVDur") : $("fVType")).focus(); return; }
       col = "addCase";
-      doc = Object.assign(base, { type, qty, link: link.slice(0, 500), note: $("fNote").value.trim().slice(0, 120), videoId: $("fVideo").value || "" }, isAIV(type) ? { videoType: vType.slice(0, 40), duration: vDur.slice(0, 20) } : {});
+      doc = Object.assign(base, { type, qty, link: link.slice(0, 500), note: $("fNote").value.trim().slice(0, 120), videoId: $("fVideo").value || "", content: $("fContent").value.trim().slice(0, 500) }, isAIV(type) ? { videoType: vType.slice(0, 40), duration: vDur.slice(0, 20) } : {});
       ok = "已提交：" + doc.client + " · " + type + " × " + qty;
     } else if (state.mode === "prog") {
       const what = $("fWhat").value.trim();
@@ -1596,7 +1607,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       let type = state.type;
       if (type === OTHER) { type = $("fTypeOther").value.trim().slice(0, 30) || OTHER; }
       col = "startCase";
-      doc = Object.assign(base, { type, qty: /^ai ?video$/i.test(type) ? 3 : 1, what: what.slice(0, 300), link: link.slice(0, 500), videoId: $("fVideo").value || "" });
+      doc = Object.assign(base, { type, qty: /^ai ?video$/i.test(type) ? 3 : 1, what: what.slice(0, 300), link: link.slice(0, 500), videoId: $("fVideo").value || "", content: $("fContent").value.trim().slice(0, 500) });
       ok = "已开始记进度：" + doc.client + "。之后每天在上面「你进行中的 case」记进度，做完按「完成了」。";
     } else {
       const what = $("fWhat").value.trim();
@@ -1609,9 +1620,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     // New cases and revisions show up at once and sync in the background; on failure they are taken back out
     // and the form is filled in again. Starting a multi-day case still waits for the server.
     const instant = col === "addCase" || col === "addRev";
-    const form = { fCase: $("fCase").value, fMarketer: $("fMarketer").value, fLink: $("fLink").value, fNote: $("fNote").value, fWhat: $("fWhat").value, fQty: $("fQty").value, fTypeOther: $("fTypeOther").value, fVType: $("fVType").value, fVDur: $("fVDur").value, noLink: $("fNoLink").checked, revCase: state.revCase, mode: state.mode };
+    const form = { fCase: $("fCase").value, fMarketer: $("fMarketer").value, fLink: $("fLink").value, fNote: $("fNote").value, fWhat: $("fWhat").value, fQty: $("fQty").value, fTypeOther: $("fTypeOther").value, fVType: $("fVType").value, fVDur: $("fVDur").value, fContent: $("fContent").value, noLink: $("fNoLink").checked, revCase: state.revCase, mode: state.mode };
     const clearForm = () => {
-      $("fCase").value = ""; $("fLink").value = ""; $("fNote").value = ""; $("fWhat").value = ""; $("fQty").value = 1; $("fTypeOther").value = ""; $("fNoLink").checked = false; $("fVType").value = ""; $("fVDur").value = "";
+      $("fCase").value = ""; $("fLink").value = ""; $("fNote").value = ""; $("fWhat").value = ""; $("fQty").value = 1; $("fTypeOther").value = ""; $("fNoLink").checked = false; $("fVType").value = ""; $("fVDur").value = ""; $("fContent").value = "";
       if (!doc.videoId && doc.type === "AI Video") state.vd.data = {};   // the server may have linked a job by client + designer
       if (doc.videoId) { const v = (state.vd.open || []).find((x) => x.id === doc.videoId); if (v) { v.status = col === "addCase" ? "done" : "progress"; if (v.status === "done") state.vd.open = state.vd.open.filter((x) => x !== v); } $("fVideo").value = ""; renderVidPick(); state.vd.data = {}; }
       if (col === "addRev") { state.revCase = null; $("revSearch").value = ""; renderRevList(); }
@@ -1636,7 +1647,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       if (pend) {
         dropPending(pend); renderAll();
         if (form.mode === "rev") setMode("rev");
-        ["fCase", "fMarketer", "fLink", "fNote", "fWhat", "fQty", "fTypeOther", "fVType", "fVDur"].forEach((k) => { $(k).value = form[k]; });
+        ["fCase", "fMarketer", "fLink", "fNote", "fWhat", "fQty", "fTypeOther", "fVType", "fVDur", "fContent"].forEach((k) => { $(k).value = form[k]; });
         $("fNoLink").checked = form.noLink; state.revCase = form.revCase; renderRevList(); checkDup();
         const em = errMsg(err);
         setStatus(/再按一次/.test(em) ? "没存到，内容已经放回表格，请再按一次提交。" : "没存到：" + em + " 内容已经放回表格。", "bad");
@@ -1717,6 +1728,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
         const q = el("input", { type: "number", min: "1", max: "99", value: String(qtyOf(c)), style: "width:80px", "aria-label": "Case QTT" });
         qwrap.appendChild(q);
         const note = el("input", { type: "text", maxlength: "120", placeholder: "Remarks（选填）", "aria-label": "Remarks" });
+        const ct = el("input", { type: "text", maxlength: "500", placeholder: "Content：marketer 给的文案链接，或写 WhatsApp / 无（必填）", "aria-label": "Content" }); ct.value = c.content || "";
         let vt = null, vdur = null, vbox = null;
         if (isAIV(c.type)) {   // AI Video: type + length are required when it is finished
           const job = ((state.vd && state.vd.open) || []).find((x) => x.caseId === c.id) || {};
@@ -1734,13 +1746,14 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
           const u = link.value.trim();
           if (u && !safeUrl(u)) { st.textContent = "链接要用 https:// 开头，整段贴进来。"; st.className = "status bad"; return; }
           if (!u && !note.value.trim()) { st.textContent = "请贴 Final Design 链接；没有链接就在 Remarks 写清楚。"; st.className = "status bad"; return; }
+          if (!ct.value.trim()) { st.textContent = "请填 Content：marketer 给的文案链接，或写 WhatsApp / 无。"; st.className = "status bad"; ct.focus(); return; }
           if (vt && (!vt.value.trim() || !vdur.value.trim())) { st.textContent = "AI Video 完成要填 Video 类型和时长。"; st.className = "status bad"; (vt.value.trim() ? vdur : vt).focus(); return; }
           go.disabled = true;
-          try { putMonth(await call("finish", Object.assign({ caseId: c.id, date: state.date, link: u, qty: clampQty(q.value), note: note.value.trim() }, vt ? { videoType: vt.value.trim(), duration: vdur.value.trim() } : {}))); if (vt && state.vd) state.vd.data = {}; state.ogOpen = ""; setStatus("已完成：" + c.client + " · " + c.type + " × " + clampQty(q.value), "ok"); renderAll(); if (state.day !== state.date) setDay(state.date); }
+          try { putMonth(await call("finish", Object.assign({ caseId: c.id, date: state.date, link: u, qty: clampQty(q.value), note: note.value.trim(), content: ct.value.trim() }, vt ? { videoType: vt.value.trim(), duration: vdur.value.trim() } : {}))); if (vt && state.vd) state.vd.data = {}; state.ogOpen = ""; setStatus("已完成：" + c.client + " · " + c.type + " × " + clampQty(q.value), "ok"); renderAll(); if (state.day !== state.date) setDay(state.date); }
           catch (e) { st.textContent = errMsg(e); st.className = "status bad"; go.disabled = false; }
         });
         f.appendChild(el("span", { class: "help" }, "完成日期是 " + state.date + "，这个 case 会算在这一天。"));
-        f.appendChild(row); f.appendChild(qwrap); if (vbox) f.appendChild(vbox); f.appendChild(note); f.appendChild(go); f.appendChild(st); item.appendChild(f);
+        f.appendChild(row); f.appendChild(ct); f.appendChild(qwrap); if (vbox) f.appendChild(vbox); f.appendChild(note); f.appendChild(go); f.appendChild(st); item.appendChild(f);
       }
       box.appendChild(item);
     });
@@ -1877,9 +1890,11 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       if (og) {
         const two = el("div", { class: "two" }); two.appendChild(field("type", "Design Type", "select", x.type)); two.appendChild(field("date", "开始日期", "date", x.startDate || x.date)); f.appendChild(two);
         f.appendChild(field("link", "目前的链接（选填）", "url", x.link));
+        f.appendChild(field("content", "Content（marketer 给的文案链接，或 WhatsApp）", "text", x.content));
       } else {
       const two = el("div", { class: "two" }); two.appendChild(field("type", "Design Type", "select", x.type)); two.appendChild(field("qty", "Case QTT", "number", qtyOf(x))); f.appendChild(two);
       f.appendChild(field("link", "Final Design 链接", "url", x.link));
+      f.appendChild(field("content", "Content（marketer 给的文案链接，或 WhatsApp）", "text", x.content));
       f.appendChild(field("note", "Remarks", "text", x.note));
       }
     } else {
@@ -2539,6 +2554,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     });
     return b;
   }
+  // Content cell: a link opens the script; text (WhatsApp, 无) is shown as it is.
+  function contentTd(v) { const td = el("td", { class: "note" }), s = safeUrl(v); if (s) td.appendChild(el("a", { href: s, target: "_blank", rel: "noopener" }, isDrive(s) || /docs\.google\.com/i.test(s) ? "文案 ↗" : "链接 ↗")); else td.textContent = String(v || "").trim() || "—"; return td; }
   function linkTd(u) { const td = el("td"), s = safeUrl(u); if (s) td.appendChild(el("a", { href: s, target: "_blank", rel: "noopener" }, isDrive(s) ? "Drive ↗" : "网址 ↗")); else td.textContent = "—"; return td; }
   function renderList() {
     const mm = M(state.month), isC = state.ltab === "cases";
@@ -2548,7 +2565,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     $("lOngoing").textContent = mm.loaded ? String((state.ongoing || []).length) : "—";
     $("lCases").setAttribute("aria-selected", String(isC)); $("lRevs").setAttribute("aria-selected", String(!isC));
     const head = $("listHead"); head.textContent = ""; const hr = el("tr");
-    (isC ? ["日期", "设计师", "Case Name", "Marketer", "Design Type", "QTT", "Final Design", "Remarks", ""] : ["日期", "设计师", "Case Name", "Marketer", "改了什么", "链接", ""]).forEach((h) => hr.appendChild(el("th", null, h)));
+    (isC ? ["日期", "设计师", "Case Name", "Marketer", "Design Type", "QTT", "Content", "Final Design", "Remarks", ""] : ["日期", "设计师", "Case Name", "Marketer", "改了什么", "链接", ""]).forEach((h) => hr.appendChild(el("th", null, h)));
     head.appendChild(hr);
     const body = $("listBody"); body.textContent = "";
     const qn = norm(state.q || "");
@@ -2562,7 +2579,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       tr.appendChild(el("td", null, c.designer || ""));
       tr.appendChild(el("td", null, c.client || "—"));
       tr.appendChild(el("td", null, c.marketer || "—"));
-      if (isC) { tr.appendChild(el("td", null, c.type || "")); tr.appendChild(el("td", { class: "q num" }, String(qtyOf(c)))); tr.appendChild(linkTd(c.link)); tr.appendChild(el("td", { class: "note" }, c.note || "")); }
+      if (isC) { tr.appendChild(el("td", null, c.type || "")); tr.appendChild(el("td", { class: "q num" }, String(qtyOf(c)))); tr.appendChild(contentTd(c.content)); tr.appendChild(linkTd(c.link)); tr.appendChild(el("td", { class: "note" }, c.note || "")); }
       else { tr.appendChild(el("td", { class: "note" }, c.what || "")); tr.appendChild(linkTd(c.link)); }
       const own = c.designer === state.me;
       const act = el("td"); if (db && (canManage() || own)) act.appendChild(delBtn((isC ? "cases/" : "revisions/") + c.id)); tr.appendChild(act);
@@ -3129,6 +3146,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const v = (state.vd.open || []).find((x) => x.id === $("fVideo").value);
     if (!v) return;
     $("fCase").value = v.client; $("fMarketer").value = v.marketer || "";
+    if (!$("fContent").value.trim() && (v.contentUrl || v.content)) $("fContent").value = v.contentUrl || v.content;
     if (v.videoType && !$("fVType").value.trim()) $("fVType").value = v.videoType;
     if (v.duration && !$("fVDur").value.trim()) $("fVDur").value = v.duration;
     const t = vdIsEdit(v) ? ((state.types || []).find((x) => /^video ?editing$/i.test(x)) || "Video Editing") : ((state.types || []).find((x) => /^ai ?video$/i.test(x)) || "AI Video");
@@ -3293,7 +3311,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     $("mTypes").textContent = isC && byType.size ? [...byType.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => k + " " + n).join(" · ") : "";
     $("mCases").setAttribute("aria-selected", String(isC)); $("mRevs").setAttribute("aria-selected", String(!isC));
     const head = $("mHead"); head.textContent = ""; const hr = el("tr");
-    (isC ? ["日期", "Case Name", "Marketer", "Design Type", "QTT", "Final Design", "Remarks"] : ["日期", "Case Name", "Marketer", "改了什么", "链接"]).forEach((h) => hr.appendChild(el("th", null, h)));
+    (isC ? ["日期", "Case Name", "Marketer", "Design Type", "QTT", "Content", "Final Design", "Remarks"] : ["日期", "Case Name", "Marketer", "改了什么", "链接"]).forEach((h) => hr.appendChild(el("th", null, h)));
     head.appendChild(hr);
     const qn = norm(state.mq || "");
     const rows = (isC ? cases : revs).filter((c) => !qn || norm(c.client).includes(qn))
@@ -3307,7 +3325,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       tr.appendChild(el("td", { class: "d num" }, (c.date || "").slice(5)));
       tr.appendChild(el("td", null, c.client || "—"));
       tr.appendChild(el("td", null, c.marketer || "—"));
-      if (isC) { tr.appendChild(el("td", null, c.type || "")); tr.appendChild(el("td", { class: "q num" }, String(qtyOf(c)))); tr.appendChild(linkTd(c.link)); tr.appendChild(el("td", { class: "note" }, c.note || "")); }
+      if (isC) { tr.appendChild(el("td", null, c.type || "")); tr.appendChild(el("td", { class: "q num" }, String(qtyOf(c)))); tr.appendChild(contentTd(c.content)); tr.appendChild(linkTd(c.link)); tr.appendChild(el("td", { class: "note" }, c.note || "")); }
       else { tr.appendChild(el("td", { class: "note" }, c.what || "")); tr.appendChild(linkTd(c.link)); }
       body.appendChild(tr);
     });
