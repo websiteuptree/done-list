@@ -776,6 +776,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
 .vdlist col.c-client { width: 130px; } .vdlist col.c-type { width: 108px; } .vdlist col.c-des { width: 134px; }   /* Content 不设宽：吃掉剩下的空间 */
 .vdlist col.c-due { width: 118px; } .vdlist col.c-st { width: 120px; } .vdlist col.c-link { width: 144px; } .vdlist col.c-cost { width: 112px; } .vdlist col.c-act { width: 36px; }
 /* 两格叠一格（类型/时长、设计师/PIC），整张表一屏放得下 */
+.vdlist tbody td.vd-stack { padding-top: 12px; padding-bottom: 12px; }   /* .vdlist tbody td 把上下 padding 设成 0，两行叠的格子要自己留边 */
 .vdlist .vd-stack input.cell { padding-top: 3px; padding-bottom: 3px; }
 .vdlist .vd-stack input.cell.sub { font-size: 12px; color: var(--muted); padding-top: 1px; padding-bottom: 1px; margin-top: 6px; }
 .vd-pic { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
