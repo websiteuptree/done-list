@@ -1125,7 +1125,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       <div class="scroll"><table class="list vdlist"><colgroup><col class="c-client"><col class="c-content"><col class="c-type"><col class="c-des"><col class="c-due"><col class="c-st"><col class="c-link"><col class="c-cost"><col class="c-act"></colgroup><thead><tr><th>Client / Project</th><th>Content</th><th>Type / Duration</th><th>Designer / PIC</th><th>Due</th><th>Status</th><th>Link</th><th>成本</th><th></th></tr></thead><tbody id="vdBody"></tbody></table></div>
       <p class="empty" id="vdEmpty" hidden>这个月还没有 Video 单。</p>
     </div>
-    <datalist id="vdTypeList"></datalist><datalist id="vdMkList"></datalist>
+    <datalist id="vdTypeList"></datalist><datalist id="vdMkList"></datalist><datalist id="vdClientList"></datalist>
   </section>
 
   <section id="viewAvail" class="view" hidden aria-label="AI Video 排期">
@@ -2732,6 +2732,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   const isMineV = (v) => vdNames(v.designer).some((n) => norm(n) === norm(state.me));
   const dmy = (d) => d ? d.slice(8, 10) + "/" + d.slice(5, 7) : "—";
   function putVideos(res, keep) {
+    if (res && Array.isArray(res.clients)) state.vd.clients = res.clients;
     if (res.month) {
       if (keep && state.vd.data[res.month]) {
         const cur = state.vd.data[res.month], byId = new Map(cur.map((x) => [x.id, x]));
@@ -2815,6 +2816,8 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const types = [...new Set(Object.values(state.vd.data).flat().map((v) => v.videoType).filter(Boolean))].sort();
     $("vdTypeList").textContent = ""; types.forEach((x) => $("vdTypeList").appendChild(el("option", { value: x })));
     $("vdMkList").textContent = ""; (state.marketers || []).forEach((x) => $("vdMkList").appendChild(el("option", { value: x })));
+    { const seen = new Set(), list = $("vdClientList"); list.textContent = "";   // clients already used on Video jobs, then the team's client list
+      (state.vd.clients || []).concat(Object.values(state.vd.data).flat().map((v) => v.client), state.clients || []).forEach((x) => { const k = norm(x); if (k && !seen.has(k)) { seen.add(k); list.appendChild(el("option", { value: String(x).trim() })); } }); }
     const qn = norm(state.vd.q || "");
     const list = rows.filter((v) => {
       const f = state.vd.filter;
@@ -2986,7 +2989,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       });
     }
     cl.appendChild(kb);
-    cl.appendChild(vdCellInput(v, "client", { maxlength: "80" }, c1)); c1.appendChild(cl); tr.appendChild(c1);
+    cl.appendChild(vdCellInput(v, "client", { maxlength: "80", list: "vdClientList" }, c1)); c1.appendChild(cl); tr.appendChild(c1);
     tr.appendChild(vdLinkCell(v, "contentUrl", "content", "Script"));
     const c3 = el("td", { class: "vd-stack" });   // 类型在上、时长在下
     c3.appendChild(vdCellInput(v, "videoType", { maxlength: "40", list: "vdTypeList", placeholder: "类型 —", title: "Video Type" }, c3));
@@ -3107,7 +3110,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       else i = el("input", Object.assign({ type }, attrs || {}));
       i.value = v[k] == null ? "" : v[k]; l.appendChild(i); inputs[k] = i; g.appendChild(l); return i;
     };
-    field("client", "Client / Project *", "text", { maxlength: "80" });
+    field("client", "Client / Project *", "text", { maxlength: "80", list: "vdClientList", autocomplete: "off", placeholder: "打字会出现用过的名字" });
     field("marketer", "PIC（Marketer）", "text", { maxlength: "40", list: "vdMkList" });
     // One Content box: a link (its Drive / Doc name is read automatically) or plain text such as WhatsApp.
     field("contentUrl", "Content（文案链接，或写 WhatsApp）", "text", { placeholder: "https://docs.google.com/… 或 WhatsApp" });
