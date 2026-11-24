@@ -3109,8 +3109,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     };
     field("client", "Client / Project *", "text", { maxlength: "80" });
     field("marketer", "PIC（Marketer）", "text", { maxlength: "40", list: "vdMkList" });
-    field("content", "Content", "text", { maxlength: "200", placeholder: "例如：ASPEN VERSA VIDEO IDEA 1" });
-    field("contentUrl", "Content 链接（或写在哪里收到，例如 WhatsApp）", "text", { placeholder: "https://docs.google.com/… 或 WhatsApp" });
+    // One Content box: a link (its Drive / Doc name is read automatically) or plain text such as WhatsApp.
+    field("contentUrl", "Content（文案链接，或写 WhatsApp）", "text", { placeholder: "https://docs.google.com/… 或 WhatsApp" });
+    inputs.contentUrl.value = v.contentUrl || v.content || "";
     { const q = el("button", { type: "button", class: "chip small", style: "margin-top:6px" }, "文案在 WhatsApp"); q.addEventListener("click", () => { inputs.contentUrl.value = "WhatsApp"; }); inputs.contentUrl.parentNode.appendChild(q); }
     field("videoType", "Video Type", "text", { maxlength: "40", list: "vdTypeList", placeholder: "例如：剧情+Sale" });
     field("duration", "Duration", "text", { maxlength: "20", placeholder: "例如 1m05s" });
@@ -3147,7 +3148,12 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       const fields = {}; Object.keys(inputs).forEach((k) => { fields[k] = inputs[k].value.trim(); });
       if (!fields.client) { st.textContent = "请填 Client / Project。"; st.className = "status bad"; inputs.client.focus(); return; }
       if (fields.link && !safeUrl(fields.link)) { st.textContent = "成片链接要用 https:// 开头。"; st.className = "status bad"; inputs.link.focus(); return; }
-      if (fields.contentUrl && !safeUrl(fields.contentUrl)) { if (!fields.content) fields.content = fields.contentUrl; fields.contentUrl = ""; }   // e.g. WhatsApp: kept as the Content text
+      {   // the one Content box: text (WhatsApp) is stored as the Content name; a new link gets its Drive / Doc name read again
+        const cv = fields.contentUrl;
+        if (!cv) { fields.content = ""; fields.contentUrl = ""; }
+        else if (!safeUrl(cv)) { fields.content = cv; fields.contentUrl = ""; }
+        else if (cv !== (v.contentUrl || "")) fields.content = "";
+      }
       const finishing = (fields.status === "done" && v.status !== "done") || (fields.link && fields.link !== (v.link || ""));
       if (finishing && (!fields.videoType || !fields.duration)) { st.textContent = "交成片要一起填 Video 类型和时长。"; st.className = "status bad"; inputs[fields.videoType ? "duration" : "videoType"].focus(); return; }
       fields.marketer = canon(fields.marketer, state.marketers || [], state.aliases || {});
