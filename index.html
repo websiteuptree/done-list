@@ -772,8 +772,9 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
 
 
 /* ===== AI Video table, tidy: fixed columns, quiet cells, one clear header per week ===== */
-.vdlist { table-layout: fixed; width: 100%; min-width: 1020px; border-collapse: separate; border-spacing: 0; }
-.vdlist col.c-client { width: 130px; } .vdlist col.c-type { width: 108px; } .vdlist col.c-des { width: 134px; }   /* Content 不设宽：吃掉剩下的空间 */
+.vdlist { table-layout: fixed; width: 100%; min-width: 1180px; border-collapse: separate; border-spacing: 0; }
+.vdlist col.c-content { width: 230px; } .vdlist col.c-type { width: 108px; } .vdlist col.c-des { width: 134px; }   /* Client 不设宽：吃掉剩下的空间（名字不再被截掉）；Content 固定窄一点，长名字用 … */
+.vdlist td .vchip { max-width: 100%; }
 .vdlist col.c-due { width: 118px; } .vdlist col.c-st { width: 120px; } .vdlist col.c-link { width: 144px; } .vdlist col.c-cost { width: 112px; } .vdlist col.c-act { width: 36px; }
 /* 两格叠一格（类型/时长、设计师/PIC），整张表一屏放得下 */
 .vdlist tbody td.vd-stack { padding-top: 12px; padding-bottom: 12px; }
