@@ -673,6 +673,20 @@ html.ready .boot-load { display: none; }
 button.vd-kind { border: none; padding: 0; cursor: pointer; }
 button.vd-kind:hover { filter: brightness(1.08); box-shadow: 0 0 0 2px #fff, 0 0 0 3px currentColor; }
 .vd-pop .kind-opt { display: flex; gap: 6px; }
+.cb-table { min-width: 760px; }
+.cb-table th.r, .cb-table td.r { text-align: right; }
+.cb-table th.sort { cursor: pointer; user-select: none; white-space: nowrap; }
+.cb-table th.sort:hover { color: var(--fg); }
+.cb-table th.on { color: var(--fg); }
+.cb-table th.on::after { content: attr(data-dir); margin-left: 4px; color: var(--upt-text); }
+.cb-rank { font-size: 20px; width: 40px; text-align: center; }
+.cb-rank.n { font-size: 14px; font-weight: 700; color: var(--muted); }
+.cb-who { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.cb-rate { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.cb-rate b { font-size: 16px; }
+.cb-rate i { display: block; width: 70px; height: 5px; border-radius: 3px; background: #F1F0EA; overflow: hidden; }
+.cb-rate i::after { content: ''; display: block; height: 100%; width: var(--w); background: var(--upt); border-radius: 3px; }
+.cb-sub { display: block; font-size: 11.5px; color: var(--muted); }
 .av-best { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px 32px; border-radius: 16px; padding: 20px 24px; margin: 6px 0 16px; background: var(--ink); color: #fff; box-shadow: 0 14px 34px rgba(0, 0, 0, .16); }
 .av-best .k { display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(255, 255, 255, .62); }
 .av-best .k .vd-kind { margin: 0; }
@@ -894,6 +908,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     <button type="button" role="tab" id="vSlot" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 14h3M13 14h3M8 17h3"/></svg><span>Design Slot</span></button>
     <button type="button" role="tab" id="vAvail" aria-selected="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-4v12l-6-4z"/><path d="M6 12h6"/></svg><span>AI Video 排期</span></button>
     <button type="button" role="tab" id="vVideo" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-4v12l-6-4z"/></svg><span>Video</span></button>
+    <button type="button" role="tab" id="vCost" aria-selected="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/><path d="M16 6l3-3 3 3"/></svg><span>AI 成本排行</span></button>
     <button type="button" role="tab" id="vOut" aria-selected="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="M21 3l-7 7"/><path d="M11 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></svg><span>Outsource</span></button>
     <button type="button" role="tab" id="vCal" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg><span>请假 / 假期</span></button>
     <button type="button" role="tab" id="vStats" aria-selected="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>本月统计</span></button>
@@ -1104,6 +1119,22 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
       <p class="help" id="mTypes" style="margin:0 0 10px"></p>
       <div class="scroll"><table class="list"><thead id="mHead"></thead><tbody id="mBody"></tbody></table></div>
       <p class="empty" id="mEmpty" hidden>这个月还没有登记。</p>
+    </div>
+  </section>
+
+  <section id="viewCost" class="view" hidden aria-label="AI 成本排行">
+    <div class="sec-head" style="margin-bottom:0">
+      <h2>AI 成本排行</h2>
+      <div class="monthnav"><button type="button" id="cbPrev" aria-label="上个月">‹</button><b id="cbMonth">—</b><button type="button" id="cbNext" aria-label="下个月">›</button><button type="button" class="plainbtn" id="cbAll" style="margin-left:8px">全部</button></div>
+    </div>
+    <div class="panel">
+      <div class="sec-head"><h3 style="margin:0">设计师排行</h3><span class="hint" id="cbHint">使用率 = 留用 ÷ 生成；点表头可以换排序</span></div>
+      <div class="scroll"><table class="list cb-table"><thead id="cbHead"></thead><tbody id="cbBody"></tbody></table></div>
+      <p class="empty" id="cbEmpty" hidden>这个月还没有成本报告。</p>
+    </div>
+    <div class="panel">
+      <div class="sec-head"><h3 style="margin:0">项目明细</h3><select id="cbWho" aria-label="按设计师筛选"><option value="">全部设计师</option></select></div>
+      <div class="scroll"><table class="list cb-table"><thead><tr><th>生成日期</th><th>项目</th><th>设计师</th><th class="r">花费</th><th class="r">生成 / 留用</th><th class="r">使用率</th><th class="r">试错率</th><th class="r">每支成片</th></tr></thead><tbody id="cbList"></tbody></table></div>
     </div>
   </section>
 
@@ -2321,6 +2352,75 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     const saved = cacheGet("o:" + state.oMonth); if (saved && saved.month === state.oMonth) renderOut(saved);
     try { const d = await call("outList", { month: state.oMonth }); cacheSet("o:" + d.month, d); renderOut(d); } catch (e) { if (!saved) $("oSummary").textContent = errMsg(e); }
   }
+  /* ---------- AI 成本排行: who spends what, keep rate, trial rate (from the Costs tab the cost reports write) ---------- */
+  state.cb = { month: today().slice(0, 7), sort: "useRate", dir: -1, who: "", data: null };
+  const CB_COLS = [
+    ["rank", "", null], ["who", "设计师", null], ["projects", "项目", "r"], ["rm", "总花费", "r"], ["gen", "生成 / 留用", "r"],
+    ["useRate", "使用率", "r"], ["trialRate", "试错率", "r"], ["perKept", "每支成片", "r"],
+  ];
+  const CB_DEFAULT_DIR = { projects: -1, rm: -1, gen: -1, useRate: -1, trialRate: 1, perKept: 1 };   // the "better" end first
+  const rmFmt = (x) => "RM " + Number(x || 0).toFixed(2);
+  function cbRate(x) { const w = Math.max(0, Math.min(100, Number(x) || 0)); const s = el("span", { class: "cb-rate" }); s.appendChild(el("b", null, (Number(x) || 0).toFixed(1) + "%")); const i = el("i"); i.style.setProperty("--w", w + "%"); s.appendChild(i); return s; }
+  function renderCost() {
+    const st = state.cb, d = st.data;
+    $("cbMonth").textContent = st.month === "all" ? "全部月份" : monthLabel(st.month);
+    $("cbAll").setAttribute("aria-pressed", String(st.month === "all"));
+    const head = $("cbHead"); head.textContent = ""; const hr = el("tr");
+    CB_COLS.forEach(([k, label, cls]) => {
+      const th = el("th", { class: [cls, k !== "rank" && k !== "who" ? "sort" : "", st.sort === k ? "on" : ""].filter(Boolean).join(" ") }, label);
+      if (st.sort === k) th.dataset.dir = st.dir < 0 ? "↓" : "↑";
+      if (k !== "rank" && k !== "who") th.addEventListener("click", () => { if (st.sort === k) st.dir = -st.dir; else { st.sort = k; st.dir = CB_DEFAULT_DIR[k] || -1; } renderCost(); });
+      hr.appendChild(th);
+    });
+    head.appendChild(hr);
+    const body = $("cbBody"); body.textContent = "";
+    const people = (d && d.people) || [];
+    $("cbEmpty").hidden = !d || people.length > 0;
+    const key = st.sort === "gen" ? "kept" : st.sort;
+    people.slice().sort((a, b) => (Number(a[key]) - Number(b[key])) * st.dir || b.rm - a.rm).forEach((p, i) => {
+      const tr = el("tr");
+      tr.appendChild(el("td", { class: "cb-rank" + (i > 2 ? " n" : "") }, i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : String(i + 1)));
+      const w = el("td"); const wr = el("div", { class: "cb-who" }); wr.appendChild(fillAvatar(el("span", { class: "avatar xs" }), p.who)); wr.appendChild(el("span", null, p.who)); w.appendChild(wr); tr.appendChild(w);
+      tr.appendChild(el("td", { class: "r num" }, String(p.projects)));
+      const rm = el("td", { class: "r num" }); rm.appendChild(el("b", null, rmFmt(p.rm))); rm.appendChild(el("span", { class: "cb-sub" }, p.credits + " cr")); tr.appendChild(rm);
+      tr.appendChild(el("td", { class: "r num" }, p.gen + " / " + p.kept));
+      const u = el("td", { class: "r" }); u.appendChild(cbRate(p.useRate)); tr.appendChild(u);
+      tr.appendChild(el("td", { class: "r num" }, (Number(p.trialRate) || 0).toFixed(1) + "%"));
+      tr.appendChild(el("td", { class: "r num" }, p.kept ? rmFmt(p.perKept) : "—"));
+      body.appendChild(tr);
+    });
+    // project list
+    const sel = $("cbWho"), names = [...new Set(((d && d.list) || []).map((x) => x.who))].sort();
+    sel.textContent = ""; sel.appendChild(el("option", { value: "" }, "全部设计师")); names.forEach((n) => sel.appendChild(el("option", { value: n }, n)));
+    sel.value = names.includes(st.who) ? st.who : "";
+    const lb = $("cbList"); lb.textContent = "";
+    ((d && d.list) || []).filter((x) => !sel.value || x.who === sel.value).forEach((x) => {
+      const tr = el("tr");
+      const md = (iso) => iso ? Number(iso.slice(8, 10)) + "/" + Number(iso.slice(5, 7)) : "";
+      tr.appendChild(el("td", { class: "d num" }, x.genStart && x.genEnd && x.genStart !== x.genEnd ? md(x.genStart) + "–" + md(x.genEnd) : md(x.genEnd || x.genStart) || "—"));
+      const pj = el("td"); pj.appendChild(el("span", { style: "font-weight:600" }, x.project)); if (x.client) pj.appendChild(el("span", { class: "cb-sub" }, x.client)); tr.appendChild(pj);
+      tr.appendChild(el("td", null, x.who));
+      const rm = el("td", { class: "r num" }); rm.appendChild(el("b", null, rmFmt(x.rm))); rm.appendChild(el("span", { class: "cb-sub" }, x.credits + " cr")); tr.appendChild(rm);
+      tr.appendChild(el("td", { class: "r num" }, x.gen + " / " + x.kept));
+      const u = el("td", { class: "r" }); u.appendChild(cbRate(x.useRate)); tr.appendChild(u);
+      tr.appendChild(el("td", { class: "r num" }, (Number(x.trialRate) || 0).toFixed(1) + "%"));
+      tr.appendChild(el("td", { class: "r num" }, x.kept ? rmFmt(x.perKept) : "—"));
+      lb.appendChild(tr);
+    });
+    if (d && !((d.list || []).length)) lb.appendChild(el("tr")).appendChild(el("td", { colspan: "8", class: "empty" }, "这个期间还没有项目。"));
+  }
+  async function loadCost() {
+    const m = state.cb.month, saved = cacheGet("cb:" + m);
+    if (saved && saved.month === m) { state.cb.data = saved; } else state.cb.data = null;
+    renderCost();
+    try { const d = await call("costBoard", { month: m }); cacheSet("cb:" + d.month, d); if (state.cb.month === d.month) { state.cb.data = d; renderCost(); } }
+    catch (e) { $("cbEmpty").hidden = false; $("cbEmpty").textContent = errMsg(e); }
+  }
+  $("cbPrev").addEventListener("click", () => { state.cb.month = shiftMonth(state.cb.month === "all" ? today().slice(0, 7) : state.cb.month, -1); loadCost(); });
+  $("cbNext").addEventListener("click", () => { state.cb.month = shiftMonth(state.cb.month === "all" ? today().slice(0, 7) : state.cb.month, 1); loadCost(); });
+  $("cbAll").addEventListener("click", () => { state.cb.month = state.cb.month === "all" ? today().slice(0, 7) : "all"; loadCost(); });
+  $("cbWho").addEventListener("change", () => { state.cb.who = $("cbWho").value; renderCost(); });
+
   /* ---------- AI Video 排期: open video slots per week (numbers only) ---------- */
   function renderAvail(d) {
     const box = $("avBody"); box.textContent = "";
@@ -2434,12 +2534,12 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
   });
 
   /* ---------- views ---------- */
-  const VIEWS = { daily: ["vDaily", "每日登记"], mine: ["vMine", "我的Case总数"], video: ["vVideo", "Video"], profile: ["vProfile", "My Profile"], slot: ["vSlot", "Design Slot"], avail: ["vAvail", "AI Video 排期"], out: ["vOut", "Outsource"], calendar: ["vCal", "请假 / 假期"], stats: ["vStats", "本月统计"], list: ["vList", "本月明细"], team: ["vTeam", "成员"] };
+  const VIEWS = { daily: ["vDaily", "每日登记"], mine: ["vMine", "我的Case总数"], video: ["vVideo", "Video"], cost: ["vCost", "AI 成本排行"], profile: ["vProfile", "My Profile"], slot: ["vSlot", "Design Slot"], avail: ["vAvail", "AI Video 排期"], out: ["vOut", "Outsource"], calendar: ["vCal", "请假 / 假期"], stats: ["vStats", "本月统计"], list: ["vList", "本月明细"], team: ["vTeam", "成员"] };
   function setView(v, fromHash) {
     if (state.viewer && v !== "out" && v !== "avail") v = "slot";
     if (v === "avail" && !state.viewer && !state.watch) v = "daily";   // 排期 is for marketers (and read-only accounts); the team uses the Video page
     if (v === "out" && !state.viewer && !canSee()) v = "daily";
-    if (v === "video" && !state.videoTeam) v = "daily";
+    if ((v === "video" || v === "cost") && !state.videoTeam) v = "daily";
     if (state.watch && (!VIEWS[v] || v === "profile" || v === "mine")) v = "stats";   // read-only accounts land on 本月统计
     if (!VIEWS[v] || (v === "team" && !canManage()) || (v === "stats" && !canSee())) v = v === "stats" ? "list" : "daily";
     state.view = v;
@@ -2447,6 +2547,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     $("viewDaily").hidden = v !== "daily";
     $("viewMine").hidden = v !== "mine";
     $("viewVideo").hidden = v !== "video";
+    $("viewCost").hidden = v !== "cost";
     $("viewProfile").hidden = v !== "profile";
     $("viewCal").hidden = v !== "calendar";
     $("viewTeam").hidden = v !== "team";
@@ -2456,10 +2557,11 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     $("viewStats").hidden = !(v === "stats" || v === "list");
     $("paneStats").hidden = v !== "stats";
     $("paneList").hidden = v !== "list";
-    $("monthBar").hidden = v === "daily" || v === "team" || v === "slot" || v === "avail" || v === "out" || v === "profile" || v === "video";
+    $("monthBar").hidden = v === "daily" || v === "team" || v === "slot" || v === "avail" || v === "out" || v === "profile" || v === "video" || v === "cost";
     if (v === "out") loadOut();
     if (v === "avail") loadAvail();
     if (v === "video") loadVideos();
+    if (v === "cost") loadCost();
     if (v === "slot") loadSlots();
     if (v === "team") loadTeam();
     $("viewTitle").textContent = VIEWS[v][1];
@@ -3580,7 +3682,7 @@ a.vchip:hover { background: #E8EAED; border-color: #D2D2D2; }
     state.types = d.types && d.types.length ? d.types : DEFAULT_TYPES;
     state.marketers = d.marketers || []; state.clients = d.clients || []; state.aliases = d.aliases || {};
     state.avatars = d.avatars || {}; state.email = d.me.email || "";
-    state.videoTeam = !!d.me.videoTeam; $("vVideo").hidden = !state.videoTeam;
+    state.videoTeam = !!d.me.videoTeam; $("vVideo").hidden = !state.videoTeam; $("vCost").hidden = !state.videoTeam;
     state.watch = !!d.me.watch; document.documentElement.classList.toggle("watch", state.watch);
     if (state.watch) {
       $("vProfile").hidden = true; $("vMine").hidden = true;
